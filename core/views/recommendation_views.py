@@ -47,5 +47,9 @@ def recommend_best_charger(request, vehicle_id):
         "unit_cost": charger.unit_cost,
         "distance_km": round(distance, 2),
         "queue_length": queue_length,
-        "priority_score": round(score, 2)
+        "priority_score": round(score, 2),
+
+        # NEW
+        "station_lat": charger.station.latitude,
+        "station_lng": charger.station.longitude
     })

@@ -11,6 +11,8 @@ from core.views.recommendation_views import recommend_best_charger
 
 from core.views.queue_views import join_queue
 
+from core.views.admin_views import admin_dashboard
+
 
 urlpatterns = [
 
@@ -31,5 +33,7 @@ urlpatterns = [
     path('recommend-charger/<int:vehicle_id>/', recommend_best_charger),
 
     path('queue/join/', join_queue),
+
+    path('admin/dashboard/', admin_dashboard),
 
 ]

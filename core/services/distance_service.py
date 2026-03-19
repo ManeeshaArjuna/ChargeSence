@@ -1,7 +1,9 @@
 import requests
 
 
-GOOGLE_MAPS_API_KEY = "AIzaSyDzfpD_cy9ykfG-y-v9RY0tA94suwod990"
+import os
+
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 
 
 def get_distance_km(origin_lat, origin_lng, dest_lat, dest_lng):

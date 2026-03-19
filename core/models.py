@@ -42,8 +42,8 @@ class ChargingStation(models.Model):
 
     location_address = models.CharField(max_length=255)
 
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
     google_map_link = models.URLField(blank=True, null=True)
 
