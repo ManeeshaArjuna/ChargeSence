@@ -10,12 +10,28 @@ from core.services.recommendation_service import recommend_charger
 @permission_classes([IsAuthenticated])
 def recommend_best_charger(request, vehicle_id):
 
+    lat = request.query_params.get("lat")
+    lng = request.query_params.get("lng")
+
+    if not lat or not lng:
+        return Response(
+            {"error": "lat and lng query parameters are required"},
+            status=400
+        )
+
+    user_lat = float(lat)
+    user_lng = float(lng)
+
     try:
         vehicle = Vehicle.objects.get(id=vehicle_id, user=request.user)
     except Vehicle.DoesNotExist:
         return Response({"error": "Vehicle not found"}, status=404)
 
-    charger, score = recommend_charger(vehicle)
+    charger, score, distance = recommend_charger(
+        vehicle,
+        user_lat,
+        user_lng
+    )
 
     if not charger:
         return Response({"message": "No compatible chargers available"})
@@ -23,8 +39,8 @@ def recommend_best_charger(request, vehicle_id):
     return Response({
         "recommended_station": charger.station.name,
         "charger_id": charger.id,
-        "charger_type": charger.charger_type,
         "power_kw": charger.power_kw,
         "unit_cost": charger.unit_cost,
+        "distance_km": round(distance, 2),
         "priority_score": round(score, 2)
     })

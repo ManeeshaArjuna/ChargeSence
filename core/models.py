@@ -18,6 +18,7 @@ class Vehicle(models.Model):
         ('TYPE1', 'Type 1'),
         ('TYPE2', 'Type 2'),
         ('CCS', 'CCS'),
+        ('CCS2', 'CCS2'),
         ('CHADEMO', 'CHAdeMO'),
     )
 
