@@ -19,6 +19,9 @@ def recommend_best_charger(request, vehicle_id):
             status=400
         )
 
+    # ✅ FIX: move battery_level INSIDE function
+    battery_level = float(request.query_params.get("battery", 50))
+
     user_lat = float(lat)
     user_lng = float(lng)
 
@@ -27,10 +30,11 @@ def recommend_best_charger(request, vehicle_id):
     except Vehicle.DoesNotExist:
         return Response({"error": "Vehicle not found"}, status=404)
 
-    charger, score, distance = recommend_charger(
+    charger, score, distance, queue_length = recommend_charger(
         vehicle,
         user_lat,
-        user_lng
+        user_lng,
+        battery_level
     )
 
     if not charger:
@@ -42,5 +46,6 @@ def recommend_best_charger(request, vehicle_id):
         "power_kw": charger.power_kw,
         "unit_cost": charger.unit_cost,
         "distance_km": round(distance, 2),
+        "queue_length": queue_length,
         "priority_score": round(score, 2)
     })
