@@ -4,8 +4,12 @@ from django.db.models import Count, Sum
 
 from core.models import Booking, ChargingStation, WalletTransaction
 
+from rest_framework.permissions import AllowAny
+from rest_framework.decorators import permission_classes
+
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def admin_dashboard(request):
 
     total_bookings = Booking.objects.count()
@@ -30,3 +34,4 @@ def admin_dashboard(request):
         "total_revenue": total_revenue,
         "popular_stations": data
     })
+
