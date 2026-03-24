@@ -1,25 +1,31 @@
 import React, { useState } from "react";
 import API from "../api/api";
 import { colors } from "../styles/colors";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
+  const navigate = useNavigate(); // ✅ correct place
+
   const handleLogin = async () => {
     try {
       const response = await API.post("login/", {
-        username,  
+        username,
         password,
       });
 
+      // Save token
       localStorage.setItem("token", response.data.access);
 
       alert("Login successful!");
-      window.location.href = "/dashboard";
+
+      // Navigate to dashboard
+      navigate("/dashboard");
 
     } catch (error) {
-      console.log("Login Error:", error.response?.data); //debug
+      console.log("Login Error:", error.response?.data);
       alert("Login failed. Check username/password.");
     }
   };
@@ -30,7 +36,7 @@ function Login() {
         <h1 style={styles.title}>⚡ ChargeSence</h1>
         <h2 style={styles.subtitle}>LOGIN</h2>
 
-        {/* USERNAME INPUT */}
+        {/* Username */}
         <input
           type="text"
           placeholder="Username"
@@ -39,7 +45,7 @@ function Login() {
           onChange={(e) => setUsername(e.target.value)}
         />
 
-        {/* PASSWORD INPUT */}
+        {/* Password */}
         <input
           type="password"
           placeholder="Password"
@@ -72,7 +78,7 @@ function Login() {
           New to ChargeSence?{" "}
           <span
             style={styles.link}
-            onClick={() => (window.location.href = "/signup")}
+            onClick={() => navigate("/signup")} // ✅ fixed
           >
             SIGN UP
           </span>

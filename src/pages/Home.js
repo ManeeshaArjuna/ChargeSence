@@ -1,8 +1,21 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import API from "../api/api";
 import { colors } from "../styles/colors";
 
 function Home() {
-  const user = "Maneesha"; // later from API
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    API.get("home/")
+      .then((res) => {
+        setData(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
+
+  if (!data) return <h2 style={{ textAlign: "center" }}>Loading...</h2>;
 
   return (
     <div style={styles.container}>
@@ -10,40 +23,44 @@ function Home() {
       {/* HEADER */}
       <div style={styles.header}>
         <h2 style={styles.logo}>⚡ ChargeSence</h2>
-        <p>Welcome, {user}</p>
+        <p>Welcome, {data.name}</p>
       </div>
 
-      {/* PROMOTION BANNER */}
+      {/* PROMOTION */}
       <div style={styles.banner}>
-        <p>🚗 Get 20% OFF on fast charging today!</p>
+        <p>{data.promotions[0]}</p>
       </div>
 
-      {/* BALANCE CARD */}
+      {/* BALANCE */}
       <div style={styles.card}>
         <h3>ChargeSence Balance</h3>
-        <p style={styles.amount}>LKR 1200</p>
+        <p style={styles.amount}>LKR {data.balance}</p>
         <button style={styles.button}>Recharge</button>
       </div>
 
-      {/* REWARDS CARD */}
+      {/* REWARDS */}
       <div style={styles.card}>
         <h3>Rewards Points</h3>
-        <p style={styles.amount}>350 pts</p>
+        <p style={styles.amount}>{data.rewards} pts</p>
         <button style={styles.buttonSecondary}>Redeem</button>
       </div>
 
-      {/* FAVORITE CHARGERS */}
+      {/* FAVORITES */}
       <div style={styles.card}>
         <h3>Favorite Chargers</h3>
+
+        {data.favorites.length === 0 ? (
+          <p>No favorites yet</p>
+        ) : (
+          data.favorites.map((fav, index) => (
+            <p key={index}>{fav.name}</p>
+          ))
+        )}
+
         <button style={styles.button}>+ Add Favorite</button>
       </div>
 
-      {/* VIEW ALL CHARGERS */}
-      <div style={styles.card}>
-        <button style={styles.button}>View All Chargers</button>
-      </div>
-
-      {/* BOTTOM NAVIGATION */}
+      {/* NAVIGATION */}
       <div style={styles.nav}>
         <p style={styles.active}>Home</p>
         <p>Booking</p>
@@ -56,68 +73,80 @@ function Home() {
   );
 }
 
+/* Styles OUTSIDE component */
 const styles = {
   container: {
-    padding: "15px",
+    padding: "20px",
     backgroundColor: colors.light,
     minHeight: "100vh",
   },
+
   header: {
-    marginBottom: "15px",
+    marginBottom: "20px",
   },
+
   logo: {
     color: colors.primary,
+    marginBottom: "5px",
   },
+
   banner: {
     backgroundColor: colors.primary,
     color: "#fff",
-    padding: "10px",
+    padding: "15px",
     borderRadius: "10px",
     marginBottom: "15px",
     textAlign: "center",
   },
+
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     padding: "15px",
-    borderRadius: "10px",
+    borderRadius: "12px",
     marginBottom: "15px",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
   },
+
   amount: {
     fontSize: "20px",
     fontWeight: "bold",
+    margin: "10px 0",
   },
+
   button: {
-    marginTop: "10px",
-    padding: "8px",
+    padding: "10px",
     width: "100%",
+    borderRadius: "8px",
+    border: "none",
     backgroundColor: colors.primary,
     color: "#fff",
-    border: "none",
-    borderRadius: "8px",
     cursor: "pointer",
+    fontWeight: "bold",
   },
+
   buttonSecondary: {
-    marginTop: "10px",
-    padding: "8px",
+    padding: "10px",
     width: "100%",
-    backgroundColor: colors.secondary,
-    color: "#fff",
-    border: "none",
     borderRadius: "8px",
+    border: `1px solid ${colors.primary}`,
+    backgroundColor: colors.white,
+    color: colors.primary,
     cursor: "pointer",
+    fontWeight: "bold",
   },
+
   nav: {
     position: "fixed",
     bottom: 0,
     left: 0,
     width: "100%",
-    backgroundColor: "#fff",
     display: "flex",
     justifyContent: "space-around",
-    padding: "10px 0",
-    borderTop: "1px solid #ccc",
+    backgroundColor: colors.white,
+    padding: "10px",
+    borderTop: `1px solid ${colors.gray}`,
   },
+
   active: {
     color: colors.primary,
     fontWeight: "bold",
