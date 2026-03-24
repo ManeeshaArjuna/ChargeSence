@@ -1,14 +1,23 @@
-import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import Login from "./pages/Login";
-import AdminDashboard from "./pages/AdminDashboard";
+import Signup from "./pages/Signup";
+import Home from "./pages/Home";
 
 function App() {
   return (
-    <div>
-      <h1>⚡ ChargeSence</h1>
-      <Login />
-      <AdminDashboard />
-    </div>
+    <Router>
+      <Routes>
+        {/* Login Page */}
+        <Route path="/" element={<Login />} />
+
+        {/* Signup Page */}
+        <Route path="/signup" element={<Signup />} />
+
+        {/* Home / Dashboard Page */}
+        <Route path="/dashboard" element={<Home />} />
+      </Routes>
+    </Router>
   );
 }
 
