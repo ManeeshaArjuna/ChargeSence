@@ -43,7 +43,7 @@ function MapPage() {
   };
 
   return (
-    <LoadScript googleMapsApiKey="AIzaSyDzfpD_cy9ykfG-y-v9RY0tA94suwod990">
+    <LoadScript googleMapsApiKey="AIzaSyB1vCNpYi9wFkOP9n5yn7fB7Abek9NS5Lw">
       <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={8}>
         
         {/* User Marker */}
