@@ -13,6 +13,8 @@ from core.views.queue_views import join_queue
 
 from core.views.admin_views import admin_dashboard
 
+from core.views.home import home_dashboard
+
 
 urlpatterns = [
 
@@ -35,5 +37,7 @@ urlpatterns = [
     path('queue/join/', join_queue),
 
     path('admin/dashboard/', admin_dashboard),
+
+    path("home/", home_dashboard),
 
 ]

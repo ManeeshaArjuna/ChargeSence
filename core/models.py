@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
+# ---------------- USER ----------------
 class User(AbstractUser):
     ROLE_CHOICES = (
         ('USER', 'User'),
@@ -12,6 +13,7 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
 
 
+# ---------------- VEHICLE ----------------
 class Vehicle(models.Model):
 
     CONNECTOR_TYPES = (
@@ -34,25 +36,25 @@ class Vehicle(models.Model):
 
     def __str__(self):
         return f"{self.manufacturer} {self.model}"
-    
 
+
+# ---------------- STATION ----------------
 class ChargingStation(models.Model):
 
     name = models.CharField(max_length=100)
-
     location_address = models.CharField(max_length=255)
 
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
 
     google_map_link = models.URLField(blank=True, null=True)
-
     telephone = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
         return self.name
-    
 
+
+# ---------------- CHARGER ----------------
 class Charger(models.Model):
 
     CHARGER_TYPES = (
@@ -69,7 +71,6 @@ class Charger(models.Model):
     station = models.ForeignKey(ChargingStation, on_delete=models.CASCADE)
 
     charger_type = models.CharField(max_length=10, choices=CHARGER_TYPES)
-
     connector_type = models.CharField(max_length=20, choices=CONNECTOR_TYPES)
 
     power_kw = models.DecimalField(max_digits=6, decimal_places=2)
@@ -84,18 +85,29 @@ class Charger(models.Model):
 
     def __str__(self):
         return f"{self.station.name} - {self.charger_type} ({self.power_kw}kW)"
-    
 
+
+# ---------------- WALLET ----------------
 class Wallet(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"{self.user.username} Wallet"
 
 
+# ---------------- REWARD ----------------
+class Reward(models.Model):
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    points = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.user.username} Rewards"
+
+
+# ---------------- TRANSACTION ----------------
 class WalletTransaction(models.Model):
 
     TRANSACTION_TYPES = (
@@ -105,26 +117,22 @@ class WalletTransaction(models.Model):
     )
 
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
-
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
-
     amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+# ---------------- BOOKING ----------------
 class Booking(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
-
     charger = models.ForeignKey(Charger, on_delete=models.CASCADE)
 
     battery_level = models.DecimalField(max_digits=5, decimal_places=2)
 
     booking_time = models.DateTimeField()
-
     duration_minutes = models.IntegerField()
 
     status = models.CharField(
@@ -137,22 +145,21 @@ class Booking(models.Model):
         default='BOOKED'
     )
 
-    # New fields for tracking charging session
     actual_end_time = models.DateTimeField(null=True, blank=True)
-
     extra_minutes = models.IntegerField(default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Booking {self.id} - {self.user.username}"
-    
 
+
+# ---------------- QUEUE ----------------
 class ChargingQueue(models.Model):
 
-    user = models.ForeignKey('core.User', on_delete=models.CASCADE)
-    vehicle = models.ForeignKey('core.Vehicle', on_delete=models.CASCADE)
-    charger = models.ForeignKey('core.Charger', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
+    charger = models.ForeignKey(Charger, on_delete=models.CASCADE)
 
     requested_time = models.DateTimeField()
     duration_minutes = models.IntegerField()
