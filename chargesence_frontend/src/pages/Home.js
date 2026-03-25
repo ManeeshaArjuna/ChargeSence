@@ -3,19 +3,36 @@ import API from "../api/api";
 import { colors } from "../styles/colors";
 
 function Home() {
-  const [data, setData] = useState(null);
+
+  const [data, setData] = useState({
+    name: "",
+    balance: 0,
+    rewards: 0,
+    favorites: [],
+    promotions: [],
+    chargers: []
+  });
 
   useEffect(() => {
     API.get("home/")
       .then((res) => {
-        setData(res.data);
+        setData({
+          name: res.data.name || "",
+          balance: res.data.balance || 0,
+          rewards: res.data.rewards || 0,
+          favorites: res.data.favorites || [],
+          promotions: res.data.promotions || [],
+          chargers: res.data.chargers || []
+        });
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Home API Error:", err);
       });
   }, []);
 
-  if (!data) return <h2 style={{ textAlign: "center" }}>Loading...</h2>;
+  if (!data.name) {
+    return <h2 style={{ textAlign: "center" }}>Loading...</h2>;
+  }
 
   return (
     <div style={styles.container}>
@@ -28,7 +45,11 @@ function Home() {
 
       {/* PROMOTION */}
       <div style={styles.banner}>
-        <p>{data.promotions[0]}</p>
+        <p>
+          {data.promotions.length > 0
+            ? data.promotions[0]
+            : "⚡ Welcome to ChargeSence!"}
+        </p>
       </div>
 
       {/* BALANCE */}
@@ -49,15 +70,35 @@ function Home() {
       <div style={styles.card}>
         <h3>Favorite Chargers</h3>
 
-        {data.favorites.length === 0 ? (
-          <p>No favorites yet</p>
-        ) : (
+        {data.favorites && data.favorites.length > 0 ? (
           data.favorites.map((fav, index) => (
             <p key={index}>{fav.name}</p>
           ))
+        ) : (
+          <p>No favorites yet</p>
         )}
 
         <button style={styles.button}>+ Add Favorite</button>
+      </div>
+
+      {/* CHARGERS */}
+      <div style={styles.card}>
+        <h3>Available Chargers</h3>
+
+        {data.chargers && data.chargers.length > 0 ? (
+          data.chargers.map((c, index) => (
+            <div key={index} style={{ marginBottom: "10px" }}>
+              <p><strong>{c.station}</strong></p>
+              <p>{c.power} kW</p>
+            </div>
+          ))
+        ) : (
+          <p>No chargers available</p>
+        )}
+
+        <button style={styles.buttonSecondary}>
+          View All Chargers
+        </button>
       </div>
 
       {/* NAVIGATION */}
@@ -73,7 +114,7 @@ function Home() {
   );
 }
 
-/* Styles OUTSIDE component */
+/* Styles */
 const styles = {
   container: {
     padding: "20px",

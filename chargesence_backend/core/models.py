@@ -63,9 +63,12 @@ class Charger(models.Model):
     )
 
     CONNECTOR_TYPES = (
+        ('TYPE1', 'Type 1'),
         ('TYPE2', 'Type 2'),
+        ('CCS', 'CCS'),
         ('CCS2', 'CCS2'),
         ('CHADEMO', 'CHAdeMO'),
+        ('GBT', 'GBT'),
     )
 
     station = models.ForeignKey(ChargingStation, on_delete=models.CASCADE)
@@ -181,3 +184,12 @@ class ChargingQueue(models.Model):
 
     def __str__(self):
         return f"Queue {self.id}"
+    
+# ---------------- REWARDS ----------------
+    
+class Reward(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    points = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.user.username} Rewards"
