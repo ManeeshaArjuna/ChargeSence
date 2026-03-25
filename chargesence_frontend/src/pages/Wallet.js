@@ -252,10 +252,10 @@ function Wallet() {
       {/* NAV */}
       <div style={styles.nav}>
         <p onClick={() => (window.location.href = "/dashboard")}>Home</p>
-        <p>Booking</p>
-        <p>History</p>
+        <p onClick={() => (window.location.href = "/booking")}>Booking</p>
+        <p onClick={() => (window.location.href = "/history")}>History</p>
         <p style={styles.active}>Wallet</p>
-        <p>More</p>
+        <p onClick={() => (window.location.href = "/more")}>More</p>
       </div>
     </div>
   );

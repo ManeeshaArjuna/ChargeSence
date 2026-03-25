@@ -228,9 +228,9 @@ function Booking() {
       <div style={styles.nav}>
         <p onClick={() => (window.location.href = "/dashboard")}>Home</p>
         <p style={styles.active}>Booking</p>
-        <p>History</p>
+        <p onClick={() => (window.location.href = "/history")}>History</p>
         <p onClick={() => (window.location.href = "/wallet")}>Wallet</p>
-        <p>More</p>
+        <p onClick={() => (window.location.href = "/more")}>More</p>
       </div>
 
     </div>

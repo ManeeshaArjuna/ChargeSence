@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Chargers from "./pages/Chargers";
 import Wallet from "./pages/Wallet";
 import Booking from "./pages/Booking";
+import More from "./pages/More";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       <Route path="/chargers" element={<Chargers />} />
       <Route path="/wallet" element={<Wallet />} />
       <Route path="/booking" element={<Booking />} />
+      <Route path="/more" element={<More />} />
     </Routes>
   );
 }
