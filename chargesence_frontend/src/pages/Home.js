@@ -10,24 +10,49 @@ function Home() {
     rewards: 0,
     favorites: [],
     promotions: [],
-    chargers: []
+    stations: []
   });
 
   useEffect(() => {
-    API.get("home/")
-      .then((res) => {
-        setData({
-          name: res.data.name || "",
-          balance: res.data.balance || 0,
-          rewards: res.data.rewards || 0,
-          favorites: res.data.favorites || [],
-          promotions: res.data.promotions || [],
-          chargers: res.data.chargers || []
-        });
-      })
-      .catch((err) => {
-        console.error("Home API Error:", err);
-      });
+    //  Get user location
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        // Call API with location
+        API.get(`home/?lat=${lat}&lng=${lng}`)
+          .then((res) => {
+            setData({
+              name: res.data.name || "",
+              balance: res.data.balance || 0,
+              rewards: res.data.rewards || 0,
+              favorites: res.data.favorites || [],
+              promotions: res.data.promotions || [],
+              stations: res.data.stations || []
+            });
+          })
+          .catch((err) => {
+            console.error("Home API Error:", err);
+          });
+      },
+      (error) => {
+        console.error("Location error:", error);
+
+        //  fallback (no location)
+        API.get("home/")
+          .then((res) => {
+            setData({
+              name: res.data.name || "",
+              balance: res.data.balance || 0,
+              rewards: res.data.rewards || 0,
+              favorites: res.data.favorites || [],
+              promotions: res.data.promotions || [],
+              chargers: res.data.chargers || []
+            });
+          });
+      }
+    );
   }, []);
 
   if (!data.name) {
@@ -56,7 +81,9 @@ function Home() {
       <div style={styles.card}>
         <h3>ChargeSence Balance</h3>
         <p style={styles.amount}>LKR {data.balance}</p>
-        <button style={styles.button}>Recharge</button>
+        <button style={styles.button} onClick={() => (window.location.href = "/wallet")}>
+          Recharge
+        </button>
       </div>
 
       {/* REWARDS */}
@@ -81,22 +108,49 @@ function Home() {
         <button style={styles.button}>+ Add Favorite</button>
       </div>
 
-      {/* CHARGERS */}
+      {/* NEARBY STATIONS */}
       <div style={styles.card}>
-        <h3>Available Chargers</h3>
+        <h3>Nearby Charging Stations</h3>
 
-        {data.chargers && data.chargers.length > 0 ? (
-          data.chargers.map((c, index) => (
-            <div key={index} style={{ marginBottom: "10px" }}>
-              <p><strong>{c.station}</strong></p>
-              <p>{c.power} kW</p>
+        {data.stations.length > 0 ? (
+          data.stations.map((s, index) => (
+            <div key={index} style={styles.card}>
+              <h4>{s.station_name}</h4>
+              <p style={styles.address}>{s.address}</p>
+
+              <div style={styles.iconRow}>
+                {s.phone && (
+                  <a href={`tel:${s.phone}`} style={styles.icon}>📞</a>
+                )}
+                {s.map && (
+                  <a href={s.map} target="_blank" rel="noreferrer" style={styles.icon}>
+                    📍
+                  </a>
+                )}
+              </div>
+
+              {s.chargers.map((c, i) => (
+                <div key={i} style={styles.chargerRow}>
+                  <span>{getConnectorIcon(c.connector)}</span>
+                  <span>{c.connector}</span>
+                  <span>{c.power} kW</span>
+                  <span>LKR {c.cost}</span>
+                </div>
+              ))}
+
+              <p style={{ fontSize: "12px", color: "#888" }}>
+                {s.distance?.toFixed(2)} km away
+              </p>
             </div>
           ))
         ) : (
-          <p>No chargers available</p>
+          <p>No nearby stations</p>
         )}
 
-        <button style={styles.buttonSecondary}>
+        <button
+          style={styles.buttonSecondary}
+          onClick={() => (window.location.href = "/chargers")}
+        >
           View All Chargers
         </button>
       </div>
@@ -104,10 +158,10 @@ function Home() {
       {/* NAVIGATION */}
       <div style={styles.nav}>
         <p style={styles.active}>Home</p>
-        <p>Booking</p>
-        <p>History</p>
-        <p>Wallet</p>
-        <p>More</p>
+        <p onClick={() => (window.location.href = "/booking")}>Booking</p>
+        <p onClick={() => (window.location.href = "/history")}>History</p>
+        <p onClick={() => (window.location.href = "/wallet")}>Wallet</p>
+        <p onClick={() => (window.location.href = "/more")}>More</p>
       </div>
 
     </div>
@@ -192,6 +246,31 @@ const styles = {
     color: colors.primary,
     fontWeight: "bold",
   },
+
+  grid: {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "10px",
+  },
+
+  tile: {
+    backgroundColor: "#fff",
+    padding: "10px",
+    borderRadius: "10px",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+    textAlign: "center",
+  },
+
+  
 };
+
+function getConnectorIcon(type) {
+  switch (type) {
+    case "TYPE2": return "🔌";
+    case "CCS2": return "⚡";
+    case "CHADEMO": return "🔋";
+    default: return "🔌";
+  }
+}
 
 export default Home;

@@ -15,6 +15,13 @@ from core.views.admin_views import admin_dashboard
 
 from core.views.home import home_dashboard
 
+from core.views.chargers import all_chargers
+
+from core.views.wallet import wallet_dashboard, topup_wallet
+
+from core.views.route import route_chargers
+
+
 
 urlpatterns = [
 
@@ -39,5 +46,14 @@ urlpatterns = [
     path('admin/dashboard/', admin_dashboard),
 
     path("home/", home_dashboard),
+
+    path('chargers/', all_chargers),
+
+    path('wallet/', wallet_dashboard),
+    path('wallet/topup/', topup_wallet),
+
+    path('route-chargers/', route_chargers),
+
+    
 
 ]

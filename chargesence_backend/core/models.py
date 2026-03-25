@@ -125,6 +125,8 @@ class WalletTransaction(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    card_last4 = models.CharField(max_length=4, blank=True, null=True)
+
 
 # ---------------- BOOKING ----------------
 class Booking(models.Model):

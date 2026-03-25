@@ -29,3 +29,18 @@ def list_vehicles(request):
     serializer = VehicleSerializer(vehicles, many=True)
 
     return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_vehicles(request):
+    vehicles = Vehicle.objects.filter(user=request.user)
+
+    data = []
+    for v in vehicles:
+        data.append({
+            "id": v.id,
+            "name": f"{v.manufacturer} {v.model}",
+            "connector": v.connector_type
+        })
+
+    return Response(data)
