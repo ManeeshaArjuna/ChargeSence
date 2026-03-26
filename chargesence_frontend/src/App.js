@@ -6,6 +6,7 @@ import Chargers from "./pages/Chargers";
 import Wallet from "./pages/Wallet";
 import Booking from "./pages/Booking";
 import More from "./pages/More";
+import Recommendation from "./pages/Recommendation";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
       <Route path="/wallet" element={<Wallet />} />
       <Route path="/booking" element={<Booking />} />
       <Route path="/more" element={<More />} />
+      <Route path="/recommendation" element={<Recommendation />} />
     </Routes>
   );
 }

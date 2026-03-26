@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { colors } from "../styles/colors";
 import API from "../api/api";
+import { useNavigate } from "react-router-dom";
 
 import {
   GoogleMap,
@@ -9,8 +10,11 @@ import {
   Marker,
   Autocomplete
 } from "@react-google-maps/api";
+import Recommendation from "./Recommendation";
 
 function Booking() {
+
+  const navigate = useNavigate();
 
   const [battery, setBattery] = useState("");
   const [start, setStart] = useState("");
@@ -31,7 +35,7 @@ function Booking() {
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicle, setSelectedVehicle] = useState("");
 
-  // 📍 GET USER LOCATION
+  // 📍 USER LOCATION
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -40,22 +44,15 @@ function Booking() {
           lng: pos.coords.longitude
         });
       },
-      (err) => {
-        console.log("Location error:", err);
-      }
+      (err) => console.log(err)
     );
   }, []);
 
-  // 🚗 FETCH USER VEHICLES
+  // 🚗 VEHICLES
   useEffect(() => {
     API.get("vehicles/list/")
-      .then((res) => {
-        console.log("Vehicles:", res.data); // debug
-        setVehicles(res.data);
-      })
-      .catch((err) => {
-        console.error("Vehicle fetch error:", err);
-      });
+      .then((res) => setVehicles(res.data))
+      .catch((err) => console.error(err));
   }, []);
 
   // 🔥 AUTO ROUTE
@@ -90,18 +87,40 @@ function Booking() {
   // ⚡ FETCH CHARGERS
   const fetchChargers = (points) => {
     API.post("route-chargers/", { points })
+      .then((res) => setChargers(res.data))
+      .catch((err) => console.error(err));
+  };
+
+  // 🤖 ML CALL → NAVIGATE
+  const findBestCharger = () => {
+
+    if (!battery || chargers.length === 0) {
+      alert("Enter data and load route first");
+      return;
+    }
+
+    API.post("recommend/", {
+      battery: battery,
+      range: 400,
+      chargers: chargers
+    })
       .then((res) => {
-        setChargers(res.data);
+
+        navigate("/recommendation", {
+          state: {
+            best: res.data.best,
+            others: res.data.others,
+            directions: directions
+          }
+        });
+
       })
-      .catch((err) => {
-        console.error("Charger fetch error:", err);
-      });
+      .catch((err) => console.error(err));
   };
 
   return (
     <div style={styles.container}>
 
-      {/* 🌍 MAP */}
       <LoadScript
         googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
         libraries={["places"]}
@@ -112,38 +131,28 @@ function Booking() {
           zoom={12}
         >
 
-          {/* USER LOCATION */}
           <Marker position={userLocation} label="📍" />
 
-          {/* ROUTE */}
-          {directions && (
-            <DirectionsRenderer directions={directions} />
-          )}
+          {directions && <DirectionsRenderer directions={directions} />}
 
-          {/* CHARGERS */}
           {chargers.map((c, i) => (
-            <Marker
-              key={i}
-              position={{ lat: c.lat, lng: c.lng }}
-              label="⚡"
-            />
+            <Marker key={i} position={{ lat: c.lat, lng: c.lng }} label="⚡" />
           ))}
 
         </GoogleMap>
 
-        {/* 🧾 OVERLAY */}
+        {/* FORM */}
         <div style={styles.overlay}>
 
           <h3>⚡ Book Charging</h3>
 
-          {/* VEHICLE SELECT (FIXED) */}
+          {/* VEHICLE */}
           <select
             style={styles.input}
             value={selectedVehicle}
             onChange={(e) => setSelectedVehicle(e.target.value)}
           >
             <option value="">Select Vehicle</option>
-
             {vehicles.map((v) => (
               <option key={v.id} value={v.id}>
                 {v.manufacturer} {v.model}
@@ -162,39 +171,37 @@ function Booking() {
 
           {/* START */}
           <Autocomplete
-            onLoad={(auto) => setStartAuto(auto)}
+            onLoad={setStartAuto}
             onPlaceChanged={() => {
               if (startAuto) {
-                const place = startAuto.getPlace();
-                setStart(place.formatted_address || "");
+                const p = startAuto.getPlace();
+                setStart(p.formatted_address);
               }
             }}
           >
             <input
-              type="text"
+              style={styles.input}
               placeholder="Start Location"
               value={start}
               onChange={(e) => setStart(e.target.value)}
-              style={styles.input}
             />
           </Autocomplete>
 
           {/* DESTINATION */}
           <Autocomplete
-            onLoad={(auto) => setDestAuto(auto)}
+            onLoad={setDestAuto}
             onPlaceChanged={() => {
               if (destAuto) {
-                const place = destAuto.getPlace();
-                setDestination(place.formatted_address || "");
+                const p = destAuto.getPlace();
+                setDestination(p.formatted_address);
               }
             }}
           >
             <input
-              type="text"
+              style={styles.input}
               placeholder="Destination"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              style={styles.input}
             />
           </Autocomplete>
 
@@ -205,18 +212,17 @@ function Booking() {
             onChange={(e) => setDuration(e.target.value)}
           >
             <option value="">Select Duration</option>
-
             {[...Array(12)].map((_, i) => {
-              const value = 10 + i * 5;
+              const val = 10 + i * 5;
               return (
-                <option key={value} value={value}>
-                  {value} minutes
+                <option key={val} value={val}>
+                  {val} minutes
                 </option>
               );
             })}
           </select>
 
-          <button style={styles.button}>
+          <button style={styles.button} onClick={Recommendation}>
             Find Best Charger
           </button>
 
@@ -238,16 +244,8 @@ function Booking() {
 }
 
 const styles = {
-  container: {
-    height: "100vh",
-    width: "100%",
-    position: "relative",
-  },
-
-  map: {
-    height: "100%",
-    width: "100%",
-  },
+  container: { height: "100vh", position: "relative" },
+  map: { height: "100%", width: "100%" },
 
   overlay: {
     position: "absolute",
@@ -260,7 +258,6 @@ const styles = {
     backdropFilter: "blur(10px)",
     padding: "15px",
     borderRadius: "12px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
     zIndex: 10,
   },
 
@@ -284,20 +281,17 @@ const styles = {
   nav: {
     position: "fixed",
     bottom: 0,
-    left: 0,
     width: "100%",
     display: "flex",
     justifyContent: "space-around",
-    backgroundColor: colors.white,
+    backgroundColor: "#fff",
     padding: "10px",
-    borderTop: `1px solid ${colors.gray}`,
-    zIndex: 20,
   },
 
   active: {
     color: colors.primary,
     fontWeight: "bold",
-  },
+  }
 };
 
 export default Booking;

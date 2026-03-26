@@ -25,6 +25,8 @@ from core.views.vehicle_views import user_vehicles
 
 from core.views.user_views import user_profile
 
+from core.views.recommend import recommend_api
+
 
 
 urlpatterns = [
@@ -63,6 +65,8 @@ urlpatterns = [
     path('user/profile/', user_profile),
 
     path('user/change-password/', change_password),
+
+    path('recommend/', recommend_api),
 
     
 

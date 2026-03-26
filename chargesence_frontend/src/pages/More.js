@@ -7,7 +7,7 @@ function More() {
   const [user, setUser] = useState({});
   const [activeModal, setActiveModal] = useState(null);
 
-  // ✅ GET REAL USER DATA
+  // GET REAL USER DATA
   useEffect(() => {
     API.get("user/profile/")
       .then((res) => {
