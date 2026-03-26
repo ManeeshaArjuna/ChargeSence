@@ -10,7 +10,6 @@ import {
   Marker,
   Autocomplete
 } from "@react-google-maps/api";
-import Recommendation from "./Recommendation";
 
 function Booking() {
 
@@ -87,7 +86,10 @@ function Booking() {
   // ⚡ FETCH CHARGERS
   const fetchChargers = (points) => {
     API.post("route-chargers/", { points })
-      .then((res) => setChargers(res.data))
+      .then((res) => {
+        console.log("CHARGERS:", res.data); // ✅ DEBUG
+        setChargers(res.data.data);
+      })
       .catch((err) => console.error(err));
   };
 
@@ -106,16 +108,29 @@ function Booking() {
     })
       .then((res) => {
 
+        // ✅ SAFE DATA EXTRACTION
+        const best = res.data.best;
+        const others = res.data.others || [];
+
+        // 🚀 NAVIGATE WITH CLEAN SERIALIZABLE DATA
         navigate("/recommendation", {
           state: {
-            best: res.data.best,
-            others: res.data.others,
-            directions: directions
+            best: best
+              ? {
+                  ...best,
+                  start: start,
+                  destination: destination
+                }
+              : null,
+            others: others
           }
         });
 
       })
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        console.error("Recommendation error:", err);
+        alert("Failed to get recommendations");
+      });
   };
 
   return (
@@ -222,7 +237,7 @@ function Booking() {
             })}
           </select>
 
-          <button style={styles.button} onClick={Recommendation}>
+          <button style={styles.button} onClick={findBestCharger}>
             Find Best Charger
           </button>
 

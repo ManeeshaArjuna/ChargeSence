@@ -30,76 +30,56 @@ def recommend_chargers(chargers, battery, vehicle_range):
 
     results = []
 
-    # 🚗 Max reachable distance
     max_distance = (battery / 100) * vehicle_range
 
     for c in chargers:
-
         try:
-            # ✅ SAFE DATA EXTRACTION
             distance = float(c.get("distance", 0))
             cost = float(c.get("cost", 0))
             power = float(c.get("power", 0))
 
-            station_name = c.get("station_name", "Unknown Station")
-            address = c.get("address", "No address")
-            connector = c.get("connector", "Unknown")
-
-            lat = c.get("lat", None)
-            lng = c.get("lng", None)
-
-            # 1️⃣ REACHABILITY CHECK
             if distance > max_distance:
                 continue
 
-            # 2️⃣ ML PREDICTION
+            # ML
             if model:
                 features = [[distance, cost, power, battery]]
                 prob = model.predict_proba(features)[0][1]
             else:
-                prob = 0.5  # fallback neutral
+                prob = 0.5
 
-            # 3️⃣ HYBRID SCORING (IMPORTANT FOR FYP)
+            # ✅ BETTER SCORE
             score = prob
+            score -= distance * 0.01
+            score += power * 0.002
 
-            # distance penalty
-            score -= (distance * 0.01)
-
-            # power bonus
-            score += (power * 0.002)
-
-            # 4️⃣ ETA CALCULATION
-            eta_minutes = (distance / 40) * 60  # avg speed 40km/h
-            eta_minutes = round(eta_minutes, 1)
-
-            arrival_time = datetime.now() + timedelta(minutes=eta_minutes)
+            # ✅ FIX ETA BUG
+            eta = round((distance / 40) * 60, 1)
 
             charger_data = {
-                "station_name": station_name,
-                "address": address,
-                "connector": connector,
-                "distance": distance,
-                "cost": cost,
+                "station_name": c.get("station_name", "Unknown Station"),
+                "address": c.get("address", "No address"),
+
+                "connector": c.get("connector", "Unknown"),
                 "power": power,
-                "lat": lat,
-                "lng": lng,
+                "cost": cost,
 
-                "score": round(score, 4),
-                "ml_score": round(float(prob), 4),
+                "chargers": c.get("chargers", []),
 
-                "eta": eta_minutes,
-                "arrival_time": arrival_time.strftime("%H:%M"),
+                "distance": distance,
+                "lat": c.get("lat"),
+                "lng": c.get("lng"),
 
+                "score": float(score),
+                "eta": eta,
                 "reachable": True
             }
 
             results.append(charger_data)
 
         except Exception as e:
-            print("⚠️ Charger processing error:", e)
-            continue
+            print("⚠️ Error:", e)
 
-    # 5️⃣ SORT BEST FIRST
     results.sort(key=lambda x: x["score"], reverse=True)
 
     return results

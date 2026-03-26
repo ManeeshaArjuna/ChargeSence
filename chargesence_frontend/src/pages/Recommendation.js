@@ -17,25 +17,54 @@ function Recommendation() {
 
   const best = data.best || null;
   const others = data.others || [];
-  const directions = data.directions || null;
 
   const [center, setCenter] = useState({ lat: 6.9271, lng: 79.8612 });
+  const [directions, setDirections] = useState(null);
 
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  //////////////////////////////////////////////////
+  // 📍 CENTER MAP TO BEST
+  //////////////////////////////////////////////////
   useEffect(() => {
-    if (best && best.lat && best.lng) {
+    if (best?.lat && best?.lng) {
       setCenter({ lat: best.lat, lng: best.lng });
     }
   }, [best]);
 
-  // 🛡 SAFE FALLBACK (IMPORTANT)
+  //////////////////////////////////////////////////
+  // 🗺 RE-CALCULATE ROUTE
+  //////////////////////////////////////////////////
+  useEffect(() => {
+    if (!mapLoaded) return;
+    if (!best?.start || !best?.destination) return;
+
+    const service = new window.google.maps.DirectionsService();
+
+    service.route(
+      {
+        origin: best.start,
+        destination: best.destination,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === "OK") {
+          setDirections(result);
+        } else {
+          console.log("Route error:", status);
+        }
+      }
+    );
+  }, [best, mapLoaded]);
+
+  //////////////////////////////////////////////////
+  // 🛡 FALLBACK
+  //////////////////////////////////////////////////
   if (!best && others.length === 0) {
     return (
       <div style={styles.empty}>
         <h3>No recommendation data</h3>
-        <button
-          style={styles.button}
-          onClick={() => navigate("/booking")}
-        >
+        <button style={styles.button} onClick={() => navigate("/booking")}>
           Go Back
         </button>
       </div>
@@ -45,28 +74,23 @@ function Recommendation() {
   return (
     <div style={styles.container}>
 
-      {/* 🗺 LEFT MAP */}
+      {/* 🗺 MAP */}
       <div style={styles.mapContainer}>
-        <LoadScript googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
-          <GoogleMap
-            mapContainerStyle={styles.map}
-            center={center}
-            zoom={13}
-          >
+        <LoadScript
+          googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
+          onLoad={() => setMapLoaded(true)}
+        >
+          <GoogleMap mapContainerStyle={styles.map} center={center} zoom={13}>
 
-            {directions && (
-              <DirectionsRenderer directions={directions} />
-            )}
+            {/* ROUTE */}
+            {directions && <DirectionsRenderer directions={directions} />}
 
-            {/* ⭐ BEST */}
+            {/* BEST */}
             {best?.lat && (
-              <Marker
-                position={{ lat: best.lat, lng: best.lng }}
-                label="⭐"
-              />
+              <Marker position={{ lat: best.lat, lng: best.lng }} label="⭐" />
             )}
 
-            {/* ⚡ OTHERS */}
+            {/* OTHERS */}
             {others.map((c, i) =>
               c.lat ? (
                 <Marker
@@ -81,7 +105,7 @@ function Recommendation() {
         </LoadScript>
       </div>
 
-      {/* 📋 RIGHT PANEL */}
+      {/* 📋 PANEL */}
       <div style={styles.panel}>
 
         {/* ⭐ BEST */}
@@ -92,16 +116,22 @@ function Recommendation() {
             <h4>{best.station_name}</h4>
             <p style={styles.address}>{best.address}</p>
 
-            <div style={styles.row}>
-              <span>🔌 {best.connector}</span>
-              <span>⚡ {best.power} kW</span>
-            </div>
+            {/* MULTIPLE CHARGERS */}
+            {best.chargers ? (
+              best.chargers.map((ch, i) => (
+                <div key={i} style={styles.chargerRow}>
+                  🔌 {ch.connector} | ⚡ {ch.power} kW | 💰 LKR {ch.cost}
+                </div>
+              ))
+            ) : (
+              <>
+                <p>🔌 {best.connector}</p>
+                <p>⚡ {best.power} kW</p>
+                <p>💰 LKR {best.cost}</p>
+              </>
+            )}
 
-            <div style={styles.row}>
-              <span>💰 LKR {best.cost}</span>
-              <span>📍 {best.distance} km</span>
-            </div>
-
+            <p>📍 {best.distance} km</p>
             <p>⏱ ETA: {best.eta} mins</p>
 
             <button
@@ -122,16 +152,22 @@ function Recommendation() {
             <h4>{c.station_name}</h4>
             <p style={styles.address}>{c.address}</p>
 
-            <div style={styles.row}>
-              <span>🔌 {c.connector}</span>
-              <span>⚡ {c.power} kW</span>
-            </div>
+            {/* MULTIPLE CHARGERS */}
+            {c.chargers ? (
+              c.chargers.map((ch, i) => (
+                <div key={i} style={styles.chargerRow}>
+                  🔌 {ch.connector} | ⚡ {ch.power} kW | 💰 LKR {ch.cost}
+                </div>
+              ))
+            ) : (
+              <>
+                <p>🔌 {c.connector}</p>
+                <p>⚡ {c.power} kW</p>
+                <p>💰 LKR {c.cost}</p>
+              </>
+            )}
 
-            <div style={styles.row}>
-              <span>💰 LKR {c.cost}</span>
-              <span>📍 {c.distance} km</span>
-            </div>
-
+            <p>📍 {c.distance} km</p>
             <p>⏱ {c.eta} mins</p>
 
             <button
@@ -192,15 +228,14 @@ const styles = {
     marginBottom: "10px",
   },
 
+  chargerRow: {
+    fontSize: "13px",
+    marginTop: "4px",
+  },
+
   address: {
     fontSize: "13px",
     color: "#666",
-  },
-
-  row: {
-    display: "flex",
-    justifyContent: "space-between",
-    marginTop: "5px",
   },
 
   primaryBtn: {
