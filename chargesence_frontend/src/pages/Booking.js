@@ -101,11 +101,15 @@ function Booking() {
       return;
     }
 
-    API.post("recommend/", {
-      battery: battery,
-      range: 400,
-      chargers: chargers
-    })
+  // 🔥 GET SELECTED VEHICLE OBJECT
+  const selected = vehicles.find(v => v.id === selectedVehicle);
+
+  API.post("recommend/", {
+    battery: battery,
+    range: 400,
+    chargers: chargers,
+    connector: selected ? selected.connector : null
+  })
       .then((res) => {
 
         // ✅ SAFE DATA EXTRACTION

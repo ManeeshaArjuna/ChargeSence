@@ -10,7 +10,6 @@ def route_chargers(request):
 
         print("📍 Incoming points count:", len(points))
 
-        # 🚨 If no points → return early
         if not points:
             return Response({
                 "error": "No route points received",
@@ -20,52 +19,85 @@ def route_chargers(request):
         stations = ChargingStation.objects.all()
         results = []
 
+        # 🧭 start & end points
+        start_point = points[0]
+        end_point = points[-1]
+
         for station in stations:
 
-            for p in points[::10]:  # slightly denser sampling
+            closest_index = None
+            min_dist = 999
+
+            # 🔍 find closest point on route
+            for i, p in enumerate(points[::5]):  # denser check
 
                 try:
                     lat = float(p.get("lat"))
                     lng = float(p.get("lng"))
                 except:
-                    continue  # skip bad points
+                    continue
 
-                # distance (rough)
                 dist = ((station.latitude - lat) ** 2 + (station.longitude - lng) ** 2) ** 0.5
 
-                # 🔥 Increased radius (IMPORTANT)
-                if dist < 0.3:
+                if dist < min_dist:
+                    min_dist = dist
+                    closest_index = i
 
-                    chargers = Charger.objects.filter(station=station)
+            # 🚫 strict distance filter
+            if min_dist > 0.2:
+                continue
 
-                    charger_list = []
-                    for ch in chargers:
-                        charger_list.append({
-                            "connector": ch.connector_type,
-                            "power": float(ch.power_kw),
-                            "cost": float(ch.unit_cost),
-                        })
+            # 📊 route progression (0 → start, 1 → end)
+            progress = closest_index / max(len(points), 1)
 
-                    results.append({
-                        "station_name": station.name,
-                        "address": getattr(station, "address", ""),
+            # 🚫 remove start/end noise
+            if progress < 0.1 or progress > 0.9:
+                continue
 
-                        "lat": station.latitude,
-                        "lng": station.longitude,
+            # 🧭 direction filter (avoid backward locations)
+            start_dist = ((station.latitude - float(start_point["lat"]))**2 +
+                          (station.longitude - float(start_point["lng"]))**2) ** 0.5
 
-                        "distance": round(dist * 111, 2),
+            end_dist = ((station.latitude - float(end_point["lat"]))**2 +
+                        (station.longitude - float(end_point["lng"]))**2) ** 0.5
 
-                        "chargers": charger_list,
+            if end_dist > start_dist:
+                continue
 
-                        # fallback (for frontend compatibility)
-                        "connector": charger_list[0]["connector"] if charger_list else "Unknown",
-                        "power": charger_list[0]["power"] if charger_list else 0,
-                        "cost": charger_list[0]["cost"] if charger_list else 0,
+            # 🔌 get chargers
+            chargers = Charger.objects.filter(station=station)
+
+            charger_list = []
+            for ch in chargers:
+                try:
+                    charger_list.append({
+                        "connector": getattr(ch, "connector_type", "Unknown"),
+                        "power": float(getattr(ch, "power_kw", 0)),
+                        "cost": float(getattr(ch, "unit_cost", 0)),
                     })
+                except:
+                    continue
 
-                    break  # stop checking more points for this station
+            results.append({
+                "station_name": station.name,
+                "address": getattr(station, "address", ""),
 
-        print("⚡ Found stations:", len(results))
+                "lat": station.latitude,
+                "lng": station.longitude,
+
+                # convert approx distance to KM
+                "distance": round(min_dist * 111, 2),
+
+                "chargers": charger_list,
+
+                # fallback for ML
+                "connector": charger_list[0]["connector"] if charger_list else "Unknown",
+                "power": charger_list[0]["power"] if charger_list else 0,
+                "cost": charger_list[0]["cost"] if charger_list else 0,
+                
+            })
+
+        print("⚡ Filtered stations:", len(results))
 
         return Response({
             "count": len(results),
