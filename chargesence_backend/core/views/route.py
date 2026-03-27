@@ -29,7 +29,7 @@ def route_chargers(request):
             min_dist = 999
 
             # 🔍 find closest point on route
-            for i, p in enumerate(points[::5]):  # denser check
+            for i, p in enumerate(points):  # denser check
 
                 try:
                     lat = float(p.get("lat"))
@@ -44,7 +44,7 @@ def route_chargers(request):
                     closest_index = i
 
             # 🚫 strict distance filter
-            if min_dist > 0.2:
+            if min_dist > 0.4:
                 continue
 
             # 📊 route progression (0 → start, 1 → end)
