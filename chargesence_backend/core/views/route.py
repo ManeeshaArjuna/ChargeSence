@@ -70,6 +70,7 @@ def route_chargers(request):
                 })
 
             results.append({
+                "id": station.id,
                 "station_name": station.name,
                 "address": getattr(station, "address", ""),
                 "lat": station.latitude,

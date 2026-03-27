@@ -9,7 +9,7 @@ from core.serializers.booking_serializer import BookingSerializer
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def create_booking(request):
+def create_bookings(request):
 
     serializer = BookingSerializer(
         data=request.data,
@@ -36,7 +36,7 @@ def list_bookings(request):
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def cancel_booking(request, booking_id):
+def cancel_bookings(request, booking_id):
 
     try:
         booking = Booking.objects.get(id=booking_id, user=request.user)

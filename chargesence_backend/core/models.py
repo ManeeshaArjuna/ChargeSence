@@ -127,36 +127,34 @@ class WalletTransaction(models.Model):
 
     card_last4 = models.CharField(max_length=4, blank=True, null=True)
 
-
 # ---------------- BOOKING ----------------
 class Booking(models.Model):
+
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending'),
+        ('PAID', 'Paid'),
+        ('COMPLETED', 'Completed'),
+        ('CANCELLED', 'Cancelled'),
+    )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
     charger = models.ForeignKey(Charger, on_delete=models.CASCADE)
 
-    battery_level = models.DecimalField(max_digits=5, decimal_places=2)
+    connector = models.CharField(max_length=20)
 
-    booking_time = models.DateTimeField()
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+
     duration_minutes = models.IntegerField()
+    amount = models.FloatField()
 
-    status = models.CharField(
-        max_length=20,
-        choices=[
-            ('BOOKED', 'Booked'),
-            ('CANCELLED', 'Cancelled'),
-            ('COMPLETED', 'Completed'),
-        ],
-        default='BOOKED'
-    )
-
-    actual_end_time = models.DateTimeField(null=True, blank=True)
-    extra_minutes = models.IntegerField(default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Booking {self.id} - {self.user.username}"
+        return f"{self.user.username} - {self.charger} ({self.status})"
 
 
 # ---------------- QUEUE ----------------
@@ -186,12 +184,3 @@ class ChargingQueue(models.Model):
 
     def __str__(self):
         return f"Queue {self.id}"
-    
-# ---------------- REWARDS ----------------
-    
-class Reward(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    points = models.IntegerField(default=0)
-
-    def __str__(self):
-        return f"{self.user.username} Rewards"

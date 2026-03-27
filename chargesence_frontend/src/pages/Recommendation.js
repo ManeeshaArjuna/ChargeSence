@@ -16,6 +16,7 @@ function Recommendation() {
   const data = location.state || {};
 
   const best = data.best || null;
+  console.log("Best charger data:", best);
   const others = data.others || [];
 
   const [center, setCenter] = useState({ lat: 6.9271, lng: 79.8612 });
@@ -136,7 +137,13 @@ function Recommendation() {
 
             <button
               style={styles.primaryBtn}
-              onClick={() => alert("Booking step next")}
+              onClick={() =>
+                navigate("/bookingpage", {
+                  state: {
+                    charger: best
+                  }
+                })
+              }
             >
               Book Now
             </button>
@@ -172,7 +179,13 @@ function Recommendation() {
 
             <button
               style={styles.secondaryBtn}
-              onClick={() => alert("Select charger")}
+              onClick={() =>
+                navigate("/bookingpage", {
+                  state: {
+                    charger: c
+                  }
+                })
+              }
             >
               Select
             </button>

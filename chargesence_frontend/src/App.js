@@ -7,6 +7,7 @@ import Wallet from "./pages/Wallet";
 import Booking from "./pages/Booking";
 import More from "./pages/More";
 import Recommendation from "./pages/Recommendation";
+import BookingPage from "./pages/BookingPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
       <Route path="/booking" element={<Booking />} />
       <Route path="/more" element={<More />} />
       <Route path="/recommendation" element={<Recommendation />} />
+      <Route path="/bookingpage" element={<BookingPage />} />
     </Routes>
   );
 }
