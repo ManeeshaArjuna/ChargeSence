@@ -4,26 +4,30 @@ import requests
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
 
 from dotenv import load_dotenv
-import os
 
+# LOAD ENV
 load_dotenv()
 
-
+# PATH SETUP
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "ml", "ml_model.pkl"))
 
+# LOAD MODEL
 try:
     model = joblib.load(MODEL_PATH)
 except:
     model = None
 
-
+# GOOGLE API KEY
 GOOGLE_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+print("Google API KEY loaded:", GOOGLE_API_KEY)
 
 
+# ==============================
+# GET REAL DISTANCE + ETA
+# ==============================
 def get_distance_eta(user_lat, user_lng, lat, lng):
     try:
         url = "https://maps.googleapis.com/maps/api/distancematrix/json"
@@ -35,16 +39,35 @@ def get_distance_eta(user_lat, user_lng, lat, lng):
         }
 
         res = requests.get(url, params=params).json()
-        el = res["rows"][0]["elements"][0]
 
-        distance = el["distance"]["value"] / 1000
-        eta = el["duration"]["value"] / 60
+        print("Distance API Response:", res)
 
-        return round(distance, 2), round(eta, 1)
-    except:
-        return 0, 0
+        # SAFE CHECK
+        if (
+            "rows" in res and
+            len(res["rows"]) > 0 and
+            len(res["rows"][0]["elements"]) > 0 and
+            res["rows"][0]["elements"][0]["status"] == "OK"
+        ):
+            el = res["rows"][0]["elements"][0]
+
+            distance = el["distance"]["value"] / 1000  # km
+            eta = el["duration"]["value"] / 60  # minutes
+
+            return round(distance, 2), round(eta, 1)
+
+        else:
+            print("Google API ERROR:", res)
+            return None, None
+
+    except Exception as e:
+        print("Distance error:", e)
+        return None, None
 
 
+# ==============================
+# RECOMMEND LOGIC
+# ==============================
 def recommend_chargers(chargers, battery, vehicle_range, vehicle_connector, user_lat, user_lng):
 
     results = []
@@ -55,30 +78,43 @@ def recommend_chargers(chargers, battery, vehicle_range, vehicle_connector, user
         try:
             distance = float(c["distance"])
 
+            #  RANGE CHECK
             if distance > max_distance:
                 continue
 
+            #  CONNECTOR FILTER
             connectors = [ch["connector"] for ch in c["chargers"]]
 
             if vehicle_connector and vehicle_connector not in connectors:
                 continue
 
-            #  REAL DISTANCE + ETA
+            # =========================
+            # GET REAL DISTANCE + ETA
+            # =========================
             real_dist, eta = get_distance_eta(
                 user_lat, user_lng,
                 c["lat"], c["lng"]
             )
 
+            # FALLBACK if API fails
+            if real_dist is None:
+                real_dist = distance   # fallback to haversine
+                eta = round((real_dist / 40) * 60, 1)  # assume 40km/h
+
             power = float(c["power"])
             cost = float(c["cost"])
 
-            #  ML
+            # =========================
+            # ML SCORE
+            # =========================
             if model:
                 prob = model.predict_proba([[real_dist, cost, power, battery]])[0][1]
             else:
                 prob = 0.5
 
-            #  scoring
+            # =========================
+            # FINAL SCORE
+            # =========================
             score = prob
             score -= real_dist * 0.01
             score -= cost * 0.002
@@ -95,13 +131,16 @@ def recommend_chargers(chargers, battery, vehicle_range, vehicle_connector, user
             })
 
         except Exception as e:
-            print("error:", e)
+            print("Charger error:", e)
 
     results.sort(key=lambda x: x["score"], reverse=True)
 
     return results
 
 
+# ==============================
+# API
+# ==============================
 @api_view(['POST'])
 def recommend_api(request):
 
