@@ -1,6 +1,20 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from core.models import ChargingStation, Charger
+import math
+
+
+#  HAVERSINE (accurate distance)
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371  # km
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+
+    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * \
+        math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    return R * c
 
 
 @api_view(['POST'])
@@ -8,105 +22,68 @@ def route_chargers(request):
     try:
         points = request.data.get("points", [])
 
-        print("📍 Incoming points count:", len(points))
-
         if not points:
-            return Response({
-                "error": "No route points received",
-                "data": []
-            })
+            return Response({"data": []})
 
         stations = ChargingStation.objects.all()
         results = []
 
-        # 🧭 start & end points
         start_point = points[0]
         end_point = points[-1]
 
         for station in stations:
 
-            closest_index = None
             min_dist = 999
+            closest_index = 0
 
-            # 🔍 find closest point on route
-            for i, p in enumerate(points):  # denser check
-
+            for i, p in enumerate(points):
                 try:
-                    lat = float(p.get("lat"))
-                    lng = float(p.get("lng"))
+                    lat = float(p["lat"])
+                    lng = float(p["lng"])
                 except:
                     continue
 
-                dist = ((station.latitude - lat) ** 2 + (station.longitude - lng) ** 2) ** 0.5
+                dist = haversine(lat, lng, station.latitude, station.longitude)
 
                 if dist < min_dist:
                     min_dist = dist
                     closest_index = i
 
-            # 🚫 strict distance filter
-            if min_dist > 0.4:
+            #  IMPORTANT (increase range)
+            if min_dist > 30:   # 30 km corridor
                 continue
 
-            # 📊 route progression (0 → start, 1 → end)
-            progress = closest_index / max(len(points), 1)
+            progress = closest_index / len(points)
 
-            # 🚫 remove start/end noise
-            if progress < 0.1 or progress > 0.9:
+            if progress < 0.05 or progress > 0.95:
                 continue
 
-            # 🧭 direction filter (avoid backward locations)
-            start_dist = ((station.latitude - float(start_point["lat"]))**2 +
-                          (station.longitude - float(start_point["lng"]))**2) ** 0.5
-
-            end_dist = ((station.latitude - float(end_point["lat"]))**2 +
-                        (station.longitude - float(end_point["lng"]))**2) ** 0.5
-
-            if end_dist > start_dist:
-                continue
-
-            # 🔌 get chargers
+            #  chargers
             chargers = Charger.objects.filter(station=station)
 
             charger_list = []
             for ch in chargers:
-                try:
-                    charger_list.append({
-                        "connector": getattr(ch, "connector_type", "Unknown"),
-                        "power": float(getattr(ch, "power_kw", 0)),
-                        "cost": float(getattr(ch, "unit_cost", 0)),
-                    })
-                except:
-                    continue
+                charger_list.append({
+                    "connector": ch.connector_type,
+                    "power": float(ch.power_kw),
+                    "cost": float(ch.unit_cost),
+                })
 
             results.append({
                 "station_name": station.name,
                 "address": getattr(station, "address", ""),
-
                 "lat": station.latitude,
                 "lng": station.longitude,
-
-                # convert approx distance to KM
-                "distance": round(min_dist * 111, 2),
-
+                "distance": round(min_dist, 2),
+                "progress": progress,  #  IMPORTANT
                 "chargers": charger_list,
-
-                # fallback for ML
                 "connector": charger_list[0]["connector"] if charger_list else "Unknown",
                 "power": charger_list[0]["power"] if charger_list else 0,
                 "cost": charger_list[0]["cost"] if charger_list else 0,
-                
             })
 
-        print("⚡ Filtered stations:", len(results))
-
-        return Response({
-            "count": len(results),
-            "data": results
-        })
+        return Response({"data": results})
 
     except Exception as e:
-        print("❌ ERROR in route_chargers:", str(e))
-        return Response({
-            "error": str(e),
-            "data": []
-        })
+        print("ERROR:", e)
+        return Response({"data": []})

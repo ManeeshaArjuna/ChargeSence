@@ -80,7 +80,7 @@ def home_dashboard(request):
                 "⚡ 20% OFF fast charging",
                 "🔋 Free charging for 10 mins"
             ],
-            "stations": stations   # ✅ changed from chargers → stations
+            "stations": stations   #  changed from chargers → stations
         })
 
     except Exception as e:

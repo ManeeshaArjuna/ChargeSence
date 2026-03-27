@@ -24,7 +24,7 @@ function Recommendation() {
   const [mapLoaded, setMapLoaded] = useState(false);
 
   //////////////////////////////////////////////////
-  // 📍 CENTER MAP TO BEST
+  //  CENTER MAP TO BEST
   //////////////////////////////////////////////////
   useEffect(() => {
     if (best?.lat && best?.lng) {
@@ -33,7 +33,7 @@ function Recommendation() {
   }, [best]);
 
   //////////////////////////////////////////////////
-  // 🗺 RE-CALCULATE ROUTE
+  //  RE-CALCULATE ROUTE
   //////////////////////////////////////////////////
   useEffect(() => {
     if (!mapLoaded) return;
@@ -58,7 +58,7 @@ function Recommendation() {
   }, [best, mapLoaded]);
 
   //////////////////////////////////////////////////
-  // 🛡 FALLBACK
+  //  FALLBACK
   //////////////////////////////////////////////////
   if (!best && others.length === 0) {
     return (
@@ -187,7 +187,7 @@ function Recommendation() {
 }
 
 //////////////////////////////////////////////////
-// 🎨 STYLES
+//  STYLES
 //////////////////////////////////////////////////
 
 const styles = {

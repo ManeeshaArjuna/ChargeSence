@@ -34,7 +34,7 @@ function Booking() {
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicle, setSelectedVehicle] = useState("");
 
-  // 📍 USER LOCATION
+  //  USER LOCATION
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -47,14 +47,14 @@ function Booking() {
     );
   }, []);
 
-  // 🚗 VEHICLES
+  //  VEHICLES
   useEffect(() => {
     API.get("vehicles/list/")
       .then((res) => setVehicles(res.data))
       .catch((err) => console.error(err));
   }, []);
 
-  // 🔥 AUTO ROUTE
+  // AUTO ROUTE
   useEffect(() => {
     if (!start || !destination) return;
 
@@ -87,13 +87,13 @@ function Booking() {
   const fetchChargers = (points) => {
     API.post("route-chargers/", { points })
       .then((res) => {
-        console.log("CHARGERS:", res.data); // ✅ DEBUG
+        console.log("CHARGERS:", res.data); //  DEBUG
         setChargers(res.data.data);
       })
       .catch((err) => console.error(err));
   };
 
-  // 🤖 ML CALL → NAVIGATE
+  //  ML CALL → NAVIGATE
   const findBestCharger = () => {
 
     if (!battery || chargers.length === 0) {
@@ -101,22 +101,24 @@ function Booking() {
       return;
     }
 
-  // 🔥 GET SELECTED VEHICLE OBJECT
+  //  GET SELECTED VEHICLE OBJECT
   const selected = vehicles.find(v => v.id === selectedVehicle);
 
   API.post("recommend/", {
     battery: battery,
     range: 400,
     chargers: chargers,
-    connector: selected ? selected.connector : null
+    connector: selected ? selected.connector : null,
+    user_lat: userLocation.lat,
+    user_lng: userLocation.lng
   })
       .then((res) => {
 
-        // ✅ SAFE DATA EXTRACTION
+        // SAFE DATA EXTRACTION
         const best = res.data.best;
         const others = res.data.others || [];
 
-        // 🚀 NAVIGATE WITH CLEAN SERIALIZABLE DATA
+        // NAVIGATE WITH CLEAN SERIALIZABLE DATA
         navigate("/recommendation", {
           state: {
             best: best

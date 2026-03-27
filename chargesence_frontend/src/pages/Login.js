@@ -7,7 +7,7 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const navigate = useNavigate(); // ✅ correct place
+  const navigate = useNavigate(); //  correct place
 
   const handleLogin = async () => {
     try {
@@ -78,7 +78,7 @@ function Login() {
           New to ChargeSence?{" "}
           <span
             style={styles.link}
-            onClick={() => navigate("/signup")} // ✅ fixed
+            onClick={() => navigate("/signup")} //  correct place
           >
             SIGN UP
           </span>

@@ -1,146 +1,122 @@
 import joblib
 import os
+import requests
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
+from dotenv import load_dotenv
+import os
 
-##################################################
-# ✅ LOAD ML MODEL
-##################################################
+load_dotenv()
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "ml", "ml_model.pkl"))
 
 try:
     model = joblib.load(MODEL_PATH)
-    print("✅ ML Model loaded successfully")
-except Exception as e:
-    print("❌ Model load error:", e)
+except:
     model = None
 
 
-##################################################
-# 🔥 CORE LOGIC
-##################################################
+GOOGLE_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 
-def recommend_chargers(chargers, battery, vehicle_range, vehicle_connector=None):
+
+def get_distance_eta(user_lat, user_lng, lat, lng):
+    try:
+        url = "https://maps.googleapis.com/maps/api/distancematrix/json"
+
+        params = {
+            "origins": f"{user_lat},{user_lng}",
+            "destinations": f"{lat},{lng}",
+            "key": GOOGLE_API_KEY,
+        }
+
+        res = requests.get(url, params=params).json()
+        el = res["rows"][0]["elements"][0]
+
+        distance = el["distance"]["value"] / 1000
+        eta = el["duration"]["value"] / 60
+
+        return round(distance, 2), round(eta, 1)
+    except:
+        return 0, 0
+
+
+def recommend_chargers(chargers, battery, vehicle_range, vehicle_connector, user_lat, user_lng):
 
     results = []
-
-    # 🚗 max reachable distance
     max_distance = (battery / 100) * vehicle_range
 
     for c in chargers:
-        try:
-            distance = float(c.get("distance", 0))
-            cost = float(c.get("cost", 0))
-            power = float(c.get("power", 0))
 
-            # 🚫 skip unreachable chargers
+        try:
+            distance = float(c["distance"])
+
             if distance > max_distance:
                 continue
 
-            # 🔌 GET ALL CONNECTORS IN STATION
-            charger_connectors = [
-                ch.get("connector") for ch in c.get("chargers", [])
-            ]
+            connectors = [ch["connector"] for ch in c["chargers"]]
 
-            # 🚫 HARD FILTER (only compatible chargers)
-            if vehicle_connector:
-                if vehicle_connector not in charger_connectors:
-                    continue
+            if vehicle_connector and vehicle_connector not in connectors:
+                continue
 
-            # 🤖 ML prediction
+            #  REAL DISTANCE + ETA
+            real_dist, eta = get_distance_eta(
+                user_lat, user_lng,
+                c["lat"], c["lng"]
+            )
+
+            power = float(c["power"])
+            cost = float(c["cost"])
+
+            #  ML
             if model:
-                features = [[distance, cost, power, battery]]
-                prob = model.predict_proba(features)[0][1]
+                prob = model.predict_proba([[real_dist, cost, power, battery]])[0][1]
             else:
                 prob = 0.5
 
-            # 🎯 SCORE CALCULATION
+            #  scoring
             score = prob
+            score -= real_dist * 0.01
+            score -= cost * 0.002
+            score += power * 0.003
 
-            # distance penalty
-            score -= distance * 0.01
+            progress = c.get("progress", 0.5)
+            score += (1 - abs(progress - 0.5)) * 0.2
 
-            # power bonus
-            score += power * 0.002
-
-            # connector bonus
-            if vehicle_connector and vehicle_connector in charger_connectors:
-                score += 0.2
-
-            # ⏱ ETA (minutes)
-            eta = round((distance / 40) * 60, 1)
-
-            charger_data = {
-                "station_name": c.get("station_name", "Unknown Station"),
-                "address": c.get("address", "No address"),
-
-                "connector": c.get("connector", "Unknown"),
-                "power": power,
-                "cost": cost,
-
-                "chargers": c.get("chargers", []),
-
-                "distance": distance,
-                "lat": c.get("lat"),
-                "lng": c.get("lng"),
-
-                "score": float(score),
+            results.append({
+                **c,
+                "distance": real_dist,
                 "eta": eta,
-                "reachable": True
-            }
-
-            results.append(charger_data)
+                "score": float(score)
+            })
 
         except Exception as e:
-            print("⚠️ Charger processing error:", e)
-            continue
+            print("error:", e)
 
-    # 🔽 SORT BEST FIRST
     results.sort(key=lambda x: x["score"], reverse=True)
 
     return results
 
 
-##################################################
-# 🚀 API
-##################################################
-
 @api_view(['POST'])
 def recommend_api(request):
 
-    try:
-        chargers = request.data.get("chargers", [])
-        battery = float(request.data.get("battery", 20))
-        vehicle_range = float(request.data.get("range", 400))
+    chargers = request.data.get("chargers", [])
+    battery = float(request.data.get("battery", 20))
+    vehicle_range = float(request.data.get("range", 400))
+    connector = request.data.get("connector")
+    user_lat = request.data.get("user_lat")
+    user_lng = request.data.get("user_lng")
 
-        # 🔌 NEW: get connector
-        vehicle_connector = request.data.get("connector", None)
+    ranked = recommend_chargers(
+        chargers, battery, vehicle_range, connector, user_lat, user_lng
+    )
 
-        if not chargers:
-            return Response(
-                {"error": "No chargers provided"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        ranked = recommend_chargers(
-            chargers,
-            battery,
-            vehicle_range,
-            vehicle_connector
-        )
-
-        return Response({
-            "best": ranked[0] if ranked else None,
-            "others": ranked[1:]
-        })
-
-    except Exception as e:
-        return Response(
-            {"error": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+    return Response({
+        "best": ranked[0] if ranked else None,
+        "others": ranked[1:]
+    })

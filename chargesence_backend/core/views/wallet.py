@@ -21,7 +21,7 @@ def wallet_dashboard(request):
             "type": t.transaction_type,
             "amount": float(t.amount),
             "date": t.created_at.strftime("%Y-%m-%d %H:%M"),
-            "card": t.card_last4   # 👈 ADD THIS LINE
+            "card": t.card_last4   #  ADD THIS LINE
         })
 
     return Response({

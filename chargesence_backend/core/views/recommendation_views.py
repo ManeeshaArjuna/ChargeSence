@@ -19,7 +19,7 @@ def recommend_best_charger(request, vehicle_id):
             status=400
         )
 
-    # ✅ FIX: move battery_level INSIDE function
+    #  FIX: move battery_level INSIDE function
     battery_level = float(request.query_params.get("battery", 50))
 
     user_lat = float(lat)
