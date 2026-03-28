@@ -1,8 +1,8 @@
 from django.urls import path
 
-from core.views.booking_view import available_slots, pay_booking
-from core.views.user_views import change_password, register_user
-from core.views.vehicle_views import create_vehicle, list_vehicles
+from core.views.booking_view import available_slots, pay_booking, user_bookings
+from core.views.user_views import change_password, register_user, update_user
+from core.views.vehicle_views import create_vehicle, delete_vehicle, list_vehicles
 from core.views.station_views import list_stations, station_chargers
 
 from core.views.charger_views import estimate_charging_cost
@@ -30,6 +30,14 @@ from core.views.recommend import recommend_api
 from core.views.booking_view import pay_booking
 
 from core.views.booking_view import available_slots, pay_booking, create_booking
+
+from core.views.booking_view import (
+    available_slots,
+    pay_booking,
+    create_booking,
+    complete_booking,
+    cancel_booking
+)
 
 
 
@@ -71,5 +79,14 @@ urlpatterns = [
     path('available-slots/', available_slots),
     path('create-booking/', create_booking),
     path('pay-booking/', pay_booking),
+
+    path('my-bookings/', user_bookings),
+
+    path('complete-booking/', complete_booking),
+    path('cancel-booking/', cancel_booking),
+
+    path('user/update/', update_user),
+
+    path('vehicles/<int:id>/', delete_vehicle),
 
 ]

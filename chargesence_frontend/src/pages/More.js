@@ -7,14 +7,18 @@ function More() {
   const [user, setUser] = useState({});
   const [activeModal, setActiveModal] = useState(null);
 
-  // GET REAL USER DATA
+  //////////////////////////////////////////////////
+  // LOAD USER
+  //////////////////////////////////////////////////
   useEffect(() => {
-    API.get("user/profile/")
-      .then((res) => {
-        setUser(res.data);
-      })
-      .catch((err) => console.error(err));
+    fetchUser();
   }, []);
+
+  const fetchUser = () => {
+    API.get("user/profile/")
+      .then(res => setUser(res.data))
+      .catch(err => console.error(err));
+  };
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -24,33 +28,40 @@ function More() {
   return (
     <div style={styles.container}>
 
-      {/* USER HEADER */}
-      <div style={styles.profileHeader}>
+      {/* PROFILE CARD */}
+      <div style={styles.profileCard}>
         <h2>{user.username}</h2>
-        <p>{user.phone}</p>
         <p>{user.email}</p>
+        <p>{user.phone}</p>
       </div>
 
-      {/* LOGO */}
+      {/* APP TITLE */}
       <div style={styles.logoBox}>
-        <h1 style={{ color: colors.primary }}>⚡ ChargeSence</h1>
+        <h1 style={{ color: colors.primary }}>⚡ ChargeSense</h1>
       </div>
 
       {/* MENU */}
       <div style={styles.menu}>
-        <button onClick={() => setActiveModal("profile")}>Profile Details</button>
-        <button onClick={() => setActiveModal("vehicles")}>Vehicle Management</button>
-        <button onClick={() => setActiveModal("settings")}>Settings</button>
-        <button onClick={() => setActiveModal("terms")}>Terms & Conditions</button>
-        <button onClick={logout} style={{ color: "red" }}>Logout</button>
+        <MenuBtn label="👤 Profile Details" onClick={() => setActiveModal("profile")} />
+        <MenuBtn label="🚗 Vehicle Management" onClick={() => setActiveModal("vehicles")} />
+        <MenuBtn label="⚙️ Settings" onClick={() => setActiveModal("settings")} />
+        <MenuBtn label="📄 Terms & Conditions" onClick={() => setActiveModal("terms")} />
+        <MenuBtn label="🚪 Logout" onClick={logout} danger />
       </div>
 
-      {/* MODALS */}
+      {/* MODAL */}
       {activeModal && (
         <div style={styles.modalOverlay} onClick={() => setActiveModal(null)}>
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
 
-            {activeModal === "profile" && <ProfileModal user={user} />}
+            {activeModal === "profile" && (
+              <ProfileModal
+                user={user}
+                setUser={setUser}
+                setActiveModal={setActiveModal}
+              />
+            )}
+
             {activeModal === "vehicles" && <VehicleModal />}
             {activeModal === "settings" && <SettingsModal />}
             {activeModal === "terms" && <TermsModal />}
@@ -67,7 +78,7 @@ function More() {
       <div style={styles.nav}>
         <p onClick={() => (window.location.href = "/dashboard")}>Home</p>
         <p onClick={() => (window.location.href = "/booking")}>Booking</p>
-        <p>History</p>
+        <p onClick={() => (window.location.href = "/activity")}>Activity</p>
         <p onClick={() => (window.location.href = "/wallet")}>Wallet</p>
         <p style={styles.active}>More</p>
       </div>
@@ -77,10 +88,26 @@ function More() {
 }
 
 //////////////////////////////////////////////////////
-// PROFILE MODAL (UPDATED)
+// MENU BUTTON COMPONENT
 //////////////////////////////////////////////////////
 
-function ProfileModal({ user }) {
+const MenuBtn = ({ label, onClick, danger }) => (
+  <button
+    onClick={onClick}
+    style={{
+      ...styles.menuBtn,
+      color: danger ? "red" : "#333"
+    }}
+  >
+    {label}
+  </button>
+);
+
+//////////////////////////////////////////////////////
+// PROFILE MODAL (FIXED + IMPROVED)
+//////////////////////////////////////////////////////
+
+function ProfileModal({ user, setUser, setActiveModal }) {
 
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -95,15 +122,20 @@ function ProfileModal({ user }) {
 
   const handleUpdate = () => {
     API.put("user/update/", { email, phone })
-      .then(() => alert("Profile updated"))
+      .then(() => {
+        alert("Profile updated");
+
+        // ✅ REFRESH USER
+        API.get("user/profile/").then(res => {
+          setUser(res.data);
+          setActiveModal(null); // close modal
+        });
+      })
       .catch(() => alert("Update failed"));
   };
 
   const changePassword = () => {
-    if (!password) {
-      alert("Enter new password");
-      return;
-    }
+    if (!password) return alert("Enter new password");
 
     API.post("user/change-password/", { password })
       .then(() => alert("Password updated"))
@@ -112,28 +144,18 @@ function ProfileModal({ user }) {
 
   return (
     <>
-      <h3>Profile Details</h3>
+      <h3>👤 Profile Details</h3>
 
-      {/* READ ONLY */}
-      <label>Username</label>
       <input style={styles.input} value={user.username || ""} disabled />
-
-      <label>Role</label>
       <input style={styles.input} value={user.role || ""} disabled />
-
-      <label>Joined</label>
       <input
         style={styles.input}
         value={user.date_joined ? new Date(user.date_joined).toLocaleDateString() : ""}
         disabled
       />
 
-      {/* EDITABLE */}
-      <label>Email</label>
-      <input style={styles.input} value={email} onChange={(e) => setEmail(e.target.value)} />
-
-      <label>Phone</label>
-      <input style={styles.input} value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <input style={styles.input} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
+      <input style={styles.input} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone" />
 
       <button style={styles.button} onClick={handleUpdate}>
         Update Profile
@@ -141,8 +163,7 @@ function ProfileModal({ user }) {
 
       <hr />
 
-      {/* PASSWORD */}
-      <h4>Change Password</h4>
+      <h4>🔒 Change Password</h4>
 
       <input
         type="password"
@@ -167,6 +188,18 @@ function VehicleModal() {
 
   const [vehicles, setVehicles] = useState([]);
 
+  const [showForm, setShowForm] = useState(false);
+
+  const [manufacturer, setManufacturer] = useState("");
+  const [model, setModel] = useState("");
+  const [connector, setConnector] = useState("");
+
+  const [battery, setBattery] = useState("");
+  const [efficiency, setEfficiency] = useState("");
+
+  //////////////////////////////////////////////////
+  // LOAD VEHICLES
+  //////////////////////////////////////////////////
   const fetchVehicles = () => {
     API.get("vehicles/list/")
       .then((res) => setVehicles(res.data));
@@ -176,33 +209,131 @@ function VehicleModal() {
     fetchVehicles();
   }, []);
 
+  //////////////////////////////////////////////////
+  // ADD VEHICLE
+  //////////////////////////////////////////////////
+  const addVehicle = () => {
+
+    if (!manufacturer || !model || !connector || !battery || !efficiency) {
+      alert("Fill all fields");
+      return;
+    }
+
+    API.post("vehicles/", {
+      manufacturer,
+      model,
+      connector_type: connector,
+      battery_capacity_kwh: battery,
+      efficiency_wh_per_km: efficiency
+    })
+      .then(() => {
+        alert("Vehicle added");
+
+        setManufacturer("");
+        setModel("");
+        setConnector("");
+        setBattery("");
+        setEfficiency("");
+
+        setShowForm(false);
+        fetchVehicles();
+      })
+      .catch(err => {
+        console.log("ERROR:", err.response.data);
+        alert("Add failed");
+      });
+  };
+
+  //////////////////////////////////////////////////
+  // DELETE VEHICLE
+  //////////////////////////////////////////////////
   const deleteVehicle = (id) => {
     API.delete(`vehicles/${id}/`)
       .then(() => {
         alert("Deleted");
-        fetchVehicles();
+        setVehicles(prev => prev.filter(v => v.id !== id));
       })
       .catch(() => alert("Delete failed"));
   };
 
   return (
     <>
-      <h3>Vehicle Management</h3>
+      <h3>🚗 Vehicle Management</h3>
 
+      {/* ADD BUTTON */}
+      <button
+        style={styles.button}
+        onClick={() => setShowForm(!showForm)}
+      >
+        {showForm ? "Cancel" : "+ Add Vehicle"}
+      </button>
+
+      {/* ADD FORM */}
+      {showForm && (
+        <div style={styles.formBox}>
+
+          <input
+            style={styles.input}
+            placeholder="Manufacturer (e.g. Tesla)"
+            value={manufacturer}
+            onChange={(e) => setManufacturer(e.target.value)}
+          />
+
+          <input
+            style={styles.input}
+            placeholder="Model (e.g. Model 3)"
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+          />
+
+          <select
+            style={styles.input}
+            value={connector}
+            onChange={(e) => setConnector(e.target.value)}
+          >
+            <option value="">Select Connector</option>
+
+            <option value="TYPE1">Type 1</option>
+            <option value="TYPE2">Type 2</option>
+            <option value="CCS">CCS</option>
+            <option value="CCS2">CCS2</option>
+            <option value="CHADEMO">CHAdeMO</option>
+          </select>
+
+          <input
+            style={styles.input}
+            placeholder="Battery Capacity (kWh)"
+            value={battery}
+            onChange={(e) => setBattery(e.target.value)}
+          />
+
+          <input
+            style={styles.input}
+            placeholder="Efficiency (Wh/km)"
+            value={efficiency}
+            onChange={(e) => setEfficiency(e.target.value)}
+          />
+
+          <button style={styles.button} onClick={addVehicle}>
+            Save Vehicle
+          </button>
+
+        </div>
+      )}
+
+      {/* LIST */}
       {vehicles.length === 0 && <p>No vehicles found</p>}
 
-      {vehicles.map((v) => (
+      {vehicles.map(v => (
         <div key={v.id} style={styles.vehicleCard}>
-          <p><b>{v.manufacturer} {v.model}</b></p>
+          <b>{v.manufacturer} {v.model}</b>
           <p>{v.connector_type}</p>
 
-          <button onClick={() => deleteVehicle(v.id)} style={styles.deleteBtn}>
+          <button style={styles.deleteBtn} onClick={() => deleteVehicle(v.id)}>
             Delete
           </button>
         </div>
       ))}
-
-      <button style={styles.button}>+ Add Vehicle</button>
     </>
   );
 }
@@ -212,15 +343,9 @@ function VehicleModal() {
 //////////////////////////////////////////////////////
 
 function SettingsModal() {
-
   const [threshold, setThreshold] = useState(20);
 
   const save = () => {
-    if (threshold < 5 || threshold > 100) {
-      alert("Enter value between 5% and 100%");
-      return;
-    }
-
     API.post("settings/", { threshold })
       .then(() => alert("Saved"))
       .catch(() => alert("Save failed"));
@@ -228,7 +353,7 @@ function SettingsModal() {
 
   return (
     <>
-      <h3>Battery Threshold (%)</h3>
+      <h3>⚙️ Battery Threshold</h3>
 
       <input
         style={styles.input}
@@ -243,17 +368,15 @@ function SettingsModal() {
 }
 
 //////////////////////////////////////////////////////
-// TERMS MODAL
+// TERMS
 //////////////////////////////////////////////////////
 
 function TermsModal() {
   return (
     <>
-      <h3>Terms & Conditions</h3>
-
+      <h3>📄 Terms</h3>
       <p>• Charging must be completed within booking time</p>
-      <p>• Late fees will apply</p>
-      <p>• Refund policy applies</p>
+      <p>• Late fees apply</p>
     </>
   );
 }
@@ -266,24 +389,38 @@ const styles = {
   container: {
     padding: "20px",
     paddingBottom: "80px",
-    backgroundColor: colors.light,
-    minHeight: "100vh",
+    backgroundColor: "#f5f5f5",
+    minHeight: "100vh"
   },
 
-  profileHeader: {
+  profileCard: {
+    backgroundColor: "#fff",
+    padding: "15px",
+    borderRadius: "12px",
     textAlign: "center",
     marginBottom: "15px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
   },
 
   logoBox: {
     textAlign: "center",
-    marginBottom: "20px",
+    marginBottom: "15px"
   },
 
   menu: {
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
+    gap: "10px"
+  },
+
+  menuBtn: {
+    padding: "12px",
+    borderRadius: "10px",
+    border: "none",
+    backgroundColor: "#fff",
+    textAlign: "left",
+    fontSize: "14px",
+    boxShadow: "0 1px 4px rgba(0,0,0,0.1)"
   },
 
   modalOverlay: {
@@ -292,8 +429,7 @@ const styles = {
     left: 0,
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(0,0,0,0.4)",
-    zIndex: 100,
+    backgroundColor: "rgba(0,0,0,0.4)"
   },
 
   modal: {
@@ -305,7 +441,7 @@ const styles = {
     padding: "20px",
     borderRadius: "12px",
     width: "90%",
-    maxWidth: "400px",
+    maxWidth: "400px"
   },
 
   input: {
@@ -313,7 +449,7 @@ const styles = {
     padding: "10px",
     marginBottom: "10px",
     borderRadius: "8px",
-    border: "1px solid #ccc",
+    border: "1px solid #ccc"
   },
 
   button: {
@@ -322,47 +458,45 @@ const styles = {
     backgroundColor: colors.primary,
     color: "#fff",
     border: "none",
-    borderRadius: "8px",
-    marginTop: "10px",
+    borderRadius: "8px"
   },
 
   deleteBtn: {
     backgroundColor: "red",
     color: "#fff",
     border: "none",
-    padding: "5px 10px",
-    borderRadius: "6px",
+    padding: "6px",
+    borderRadius: "6px"
   },
 
   vehicleCard: {
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#fff",
     padding: "10px",
     borderRadius: "8px",
-    marginBottom: "10px",
+    marginBottom: "8px"
   },
 
   closeBtn: {
     marginTop: "10px",
     width: "100%",
-    padding: "8px",
+    padding: "8px"
   },
 
   nav: {
     position: "fixed",
     bottom: 0,
-    left: 0,
     width: "100%",
     display: "flex",
     justifyContent: "space-around",
-    backgroundColor: colors.white,
+    backgroundColor: "#fff",
     padding: "10px",
-    borderTop: `1px solid ${colors.gray}`,
+    borderTop: "1px solid #ddd"
   },
 
   active: {
     color: colors.primary,
-    fontWeight: "bold",
-  },
+    fontWeight: "bold"
+  }
 };
 
 export default More;

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from decimal import Decimal
 
 
 # ---------------- USER ----------------
@@ -115,6 +116,7 @@ class WalletTransaction(models.Model):
 
     TRANSACTION_TYPES = (
         ('TOPUP', 'Top Up'),
+        ('HOLD', 'Hold Amount'),
         ('PAYMENT', 'Charging Payment'),
         ('REFUND', 'Refund'),
     )
@@ -147,7 +149,14 @@ class Booking(models.Model):
     end_time = models.DateTimeField()
 
     duration_minutes = models.IntegerField()
-    amount = models.FloatField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    energy_used_kwh = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    final_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+
+    created_at = models.DateTimeField(auto_now_add=True)
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
 

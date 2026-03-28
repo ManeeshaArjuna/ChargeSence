@@ -159,7 +159,7 @@ function Home() {
       <div style={styles.nav}>
         <p style={styles.active}>Home</p>
         <p onClick={() => (window.location.href = "/booking")}>Booking</p>
-        <p onClick={() => (window.location.href = "/history")}>History</p>
+        <p onClick={() => (window.location.href = "/activity")}>Activity</p>
         <p onClick={() => (window.location.href = "/wallet")}>Wallet</p>
         <p onClick={() => (window.location.href = "/more")}>More</p>
       </div>

@@ -8,6 +8,7 @@ import Booking from "./pages/Booking";
 import More from "./pages/More";
 import Recommendation from "./pages/Recommendation";
 import BookingPage from "./pages/BookingPage";
+import ActivityPage from "./pages/ActivityPage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
       <Route path="/more" element={<More />} />
       <Route path="/recommendation" element={<Recommendation />} />
       <Route path="/bookingpage" element={<BookingPage />} />
+      <Route path="/activity" element={<ActivityPage />} />
     </Routes>
   );
 }

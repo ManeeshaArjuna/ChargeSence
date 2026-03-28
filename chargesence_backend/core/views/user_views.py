@@ -43,3 +43,21 @@ def change_password(request):
     user.save()
 
     return Response({"message": "Password updated"})
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_user(request):
+    user = request.user
+
+    email = request.data.get("email")
+    phone = request.data.get("phone")
+
+    if email:
+        user.email = email
+
+    if phone:
+        user.phone_number = phone  # ⚠️ match your model field
+
+    user.save()
+
+    return Response({"message": "Profile updated"})

@@ -28,13 +28,16 @@ function Booking() {
     lng: 79.8612
   });
 
+  const [startCoords, setStartCoords] = useState(null); // ✅ FIX
   const [startAuto, setStartAuto] = useState(null);
   const [destAuto, setDestAuto] = useState(null);
 
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicle, setSelectedVehicle] = useState("");
 
-  //  USER LOCATION
+  //////////////////////////////////////////////////
+  // USER LOCATION (ONLY FOR MAP CENTER)
+  //////////////////////////////////////////////////
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -47,14 +50,18 @@ function Booking() {
     );
   }, []);
 
-  //  VEHICLES
+  //////////////////////////////////////////////////
+  // VEHICLES
+  //////////////////////////////////////////////////
   useEffect(() => {
     API.get("vehicles/list/")
       .then((res) => setVehicles(res.data))
       .catch((err) => console.error(err));
   }, []);
 
+  //////////////////////////////////////////////////
   // AUTO ROUTE
+  //////////////////////////////////////////////////
   useEffect(() => {
     if (!start || !destination) return;
 
@@ -83,17 +90,20 @@ function Booking() {
     );
   }, [start, destination]);
 
-  // ⚡ FETCH CHARGERS
+  //////////////////////////////////////////////////
+  // FETCH CHARGERS
+  //////////////////////////////////////////////////
   const fetchChargers = (points) => {
     API.post("route-chargers/", { points })
       .then((res) => {
-        console.log("CHARGERS:", res.data); //  DEBUG
         setChargers(res.data.data);
       })
       .catch((err) => console.error(err));
   };
 
-  //  ML CALL → NAVIGATE
+  //////////////////////////////////////////////////
+  // FIND BEST CHARGER
+  //////////////////////////////////////////////////
   const findBestCharger = () => {
 
     if (!battery || chargers.length === 0) {
@@ -101,24 +111,28 @@ function Booking() {
       return;
     }
 
-  //  GET SELECTED VEHICLE OBJECT
-  const selected = vehicles.find(v => v.id === selectedVehicle);
+    if (!startCoords) {
+      alert("Please select start location from dropdown");
+      return;
+    }
 
-  API.post("recommend/", {
-    battery: battery,
-    range: 400,
-    chargers: chargers,
-    connector: selected ? selected.connector : null,
-    user_lat: userLocation.lat,
-    user_lng: userLocation.lng
-  })
+    const selected = vehicles.find(v => v.id === selectedVehicle);
+
+    console.log("START COORDS:", startCoords); // DEBUG
+
+    API.post("recommend/", {
+      battery: battery,
+      range: 400,
+      chargers: chargers,
+      connector: selected ? selected.connector : null,
+      user_lat: startCoords.lat,   // ✅ FIX
+      user_lng: startCoords.lng    // ✅ FIX
+    })
       .then((res) => {
 
-        // SAFE DATA EXTRACTION
         const best = res.data.best;
         const others = res.data.others || [];
 
-        // NAVIGATE WITH CLEAN SERIALIZABLE DATA
         navigate("/recommendation", {
           state: {
             best: best
@@ -167,7 +181,6 @@ function Booking() {
 
           <h3>⚡ Book Charging</h3>
 
-          {/* VEHICLE */}
           <select
             style={styles.input}
             value={selectedVehicle}
@@ -181,7 +194,6 @@ function Booking() {
             ))}
           </select>
 
-          {/* BATTERY */}
           <input
             type="number"
             placeholder="Battery Level (%)"
@@ -190,13 +202,26 @@ function Booking() {
             style={styles.input}
           />
 
-          {/* START */}
+          {/* ✅ FIXED START */}
           <Autocomplete
             onLoad={setStartAuto}
             onPlaceChanged={() => {
               if (startAuto) {
                 const p = startAuto.getPlace();
+
+                if (!p.geometry) {
+                  alert("Select location from dropdown");
+                  return;
+                }
+
                 setStart(p.formatted_address);
+
+                const loc = p.geometry.location;
+
+                setStartCoords({
+                  lat: loc.lat(),
+                  lng: loc.lng()
+                });
               }
             }}
           >
@@ -208,7 +233,6 @@ function Booking() {
             />
           </Autocomplete>
 
-          {/* DESTINATION */}
           <Autocomplete
             onLoad={setDestAuto}
             onPlaceChanged={() => {
@@ -226,7 +250,6 @@ function Booking() {
             />
           </Autocomplete>
 
-          {/* DURATION */}
           <select
             style={styles.input}
             value={duration}
@@ -251,11 +274,10 @@ function Booking() {
 
       </LoadScript>
 
-      {/* NAV */}
       <div style={styles.nav}>
         <p onClick={() => (window.location.href = "/dashboard")}>Home</p>
         <p style={styles.active}>Booking</p>
-        <p onClick={() => (window.location.href = "/history")}>History</p>
+        <p onClick={() => (window.location.href = "/activity")}>Activity</p>
         <p onClick={() => (window.location.href = "/wallet")}>Wallet</p>
         <p onClick={() => (window.location.href = "/more")}>More</p>
       </div>
@@ -267,7 +289,6 @@ function Booking() {
 const styles = {
   container: { height: "100vh", position: "relative" },
   map: { height: "100%", width: "100%" },
-
   overlay: {
     position: "absolute",
     top: "20px",
@@ -281,7 +302,6 @@ const styles = {
     borderRadius: "12px",
     zIndex: 10,
   },
-
   input: {
     width: "100%",
     padding: "10px",
@@ -289,7 +309,6 @@ const styles = {
     borderRadius: "8px",
     border: "1px solid #ccc",
   },
-
   button: {
     width: "100%",
     padding: "12px",
@@ -298,7 +317,6 @@ const styles = {
     borderRadius: "8px",
     border: "none",
   },
-
   nav: {
     position: "fixed",
     bottom: 0,
@@ -308,7 +326,6 @@ const styles = {
     backgroundColor: "#fff",
     padding: "10px",
   },
-
   active: {
     color: colors.primary,
     fontWeight: "bold",

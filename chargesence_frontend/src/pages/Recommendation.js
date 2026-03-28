@@ -4,7 +4,7 @@ import {
   GoogleMap,
   LoadScript,
   Marker,
-  DirectionsRenderer
+  DirectionsRenderer   // ✅ FIX 1
 } from "@react-google-maps/api";
 import { colors } from "../styles/colors";
 
@@ -16,16 +16,16 @@ function Recommendation() {
   const data = location.state || {};
 
   const best = data.best || null;
-  console.log("Best charger data:", best);
   const others = data.others || [];
 
   const [center, setCenter] = useState({ lat: 6.9271, lng: 79.8612 });
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [directions, setDirections] = useState(null);
 
-  const [mapLoaded, setMapLoaded] = useState(false);
+  const [secondRoute, setSecondRoute] = useState(null);
 
   //////////////////////////////////////////////////
-  //  CENTER MAP TO BEST
+  // CENTER MAP
   //////////////////////////////////////////////////
   useEffect(() => {
     if (best?.lat && best?.lng) {
@@ -34,32 +34,67 @@ function Recommendation() {
   }, [best]);
 
   //////////////////////////////////////////////////
-  //  RE-CALCULATE ROUTE
+  // ROUTE (VISUAL ONLY)
   //////////////////////////////////////////////////
-  useEffect(() => {
-    if (!mapLoaded) return;
-    if (!best?.start || !best?.destination) return;
+useEffect(() => {
+  if (!mapLoaded) return;
+  if (!best?.start || !best?.destination || !best?.lat || !best?.lng) return;
 
-    const service = new window.google.maps.DirectionsService();
+  const service = new window.google.maps.DirectionsService();
 
-    service.route(
-      {
-        origin: best.start,
-        destination: best.destination,
-        travelMode: window.google.maps.TravelMode.DRIVING,
-      },
-      (result, status) => {
-        if (status === "OK") {
-          setDirections(result);
-        } else {
-          console.log("Route error:", status);
-        }
+  // 🔹 Route 1: Start → Charger
+  service.route(
+    {
+      origin: best.start,
+      destination: { lat: best.lat, lng: best.lng },
+      travelMode: window.google.maps.TravelMode.DRIVING,
+    },
+    (result, status) => {
+      if (status === "OK") {
+        setDirections(result);
       }
-    );
-  }, [best, mapLoaded]);
+    }
+  );
+
+  // 🔹 Route 2: Charger → Destination
+  service.route(
+    {
+      origin: { lat: best.lat, lng: best.lng },
+      destination: best.destination,
+      travelMode: window.google.maps.TravelMode.DRIVING,
+    },
+    (result, status) => {
+      if (status === "OK") {
+        setSecondRoute(result);
+      }
+    }
+  );
+
+}, [best, mapLoaded]);
 
   //////////////////////////////////////////////////
-  //  FALLBACK
+  // ETA (FROM BACKEND ONLY)
+  //////////////////////////////////////////////////
+  const getETA = (charger) => {
+    return Math.ceil(charger?.eta || 0);
+  };
+
+  //////////////////////////////////////////////////
+  // NAVIGATION
+  //////////////////////////////////////////////////
+  const goToBooking = (charger) => {
+    navigate("/bookingpage", {
+      state: {
+        charger: charger,
+        eta: getETA(charger),
+        best,
+        others
+      }
+    });
+  };
+
+  //////////////////////////////////////////////////
+  // FALLBACK
   //////////////////////////////////////////////////
   if (!best && others.length === 0) {
     return (
@@ -81,17 +116,38 @@ function Recommendation() {
           googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
           onLoad={() => setMapLoaded(true)}
         >
-          <GoogleMap mapContainerStyle={styles.map} center={center} zoom={13}>
+          <GoogleMap
+            mapContainerStyle={styles.map}
+            center={center}
+            zoom={13}
+          >
+              {directions && <DirectionsRenderer directions={directions} />}
 
-            {/* ROUTE */}
+              {secondRoute && (
+                <DirectionsRenderer
+                  directions={secondRoute}
+                  options={{
+                    polylineOptions: {
+                      strokeColor: "#FF0000"
+                    }
+                  }}
+                />
+              )}
+
+              {/* ⭐ BEST */}
+              {best?.lat && (
+                <Marker position={{ lat: best.lat, lng: best.lng }} label="⭐" />
+              )}
+
+            {/* ✅ FIX 2: correct placement */}
             {directions && <DirectionsRenderer directions={directions} />}
 
-            {/* BEST */}
+            {/* ⭐ BEST */}
             {best?.lat && (
               <Marker position={{ lat: best.lat, lng: best.lng }} label="⭐" />
             )}
 
-            {/* OTHERS */}
+            {/* ⚡ OTHERS */}
             {others.map((c, i) =>
               c.lat ? (
                 <Marker
@@ -117,7 +173,6 @@ function Recommendation() {
             <h4>{best.station_name}</h4>
             <p style={styles.address}>{best.address}</p>
 
-            {/* MULTIPLE CHARGERS */}
             {best.chargers ? (
               best.chargers.map((ch, i) => (
                 <div key={i} style={styles.chargerRow}>
@@ -133,17 +188,11 @@ function Recommendation() {
             )}
 
             <p>📍 {best.distance} km</p>
-            <p>⏱ ETA: {best.eta} mins</p>
+            <p>⏱ ETA: {getETA(best)} mins</p>
 
             <button
               style={styles.primaryBtn}
-              onClick={() =>
-                navigate("/bookingpage", {
-                  state: {
-                    charger: best
-                  }
-                })
-              }
+              onClick={() => goToBooking(best)}
             >
               Book Now
             </button>
@@ -159,7 +208,6 @@ function Recommendation() {
             <h4>{c.station_name}</h4>
             <p style={styles.address}>{c.address}</p>
 
-            {/* MULTIPLE CHARGERS */}
             {c.chargers ? (
               c.chargers.map((ch, i) => (
                 <div key={i} style={styles.chargerRow}>
@@ -175,17 +223,11 @@ function Recommendation() {
             )}
 
             <p>📍 {c.distance} km</p>
-            <p>⏱ {c.eta} mins</p>
+            <p>⏱ {getETA(c)} mins</p>
 
             <button
               style={styles.secondaryBtn}
-              onClick={() =>
-                navigate("/bookingpage", {
-                  state: {
-                    charger: c
-                  }
-                })
-              }
+              onClick={() => goToBooking(c)}
             >
               Select
             </button>
@@ -200,24 +242,13 @@ function Recommendation() {
 }
 
 //////////////////////////////////////////////////
-//  STYLES
+// STYLES
 //////////////////////////////////////////////////
 
 const styles = {
-  container: {
-    display: "flex",
-    height: "100vh",
-  },
-
-  mapContainer: {
-    flex: 1,
-  },
-
-  map: {
-    height: "100%",
-    width: "100%",
-  },
-
+  container: { display: "flex", height: "100vh" },
+  mapContainer: { flex: 1 },
+  map: { height: "100%", width: "100%" },
   panel: {
     width: "380px",
     overflowY: "auto",
@@ -225,7 +256,6 @@ const styles = {
     padding: "15px",
     borderLeft: "1px solid #eee",
   },
-
   bestCard: {
     border: `2px solid ${colors.primary}`,
     backgroundColor: "#f0f8ff",
@@ -233,24 +263,14 @@ const styles = {
     borderRadius: "10px",
     marginBottom: "10px",
   },
-
   card: {
     border: "1px solid #ddd",
     padding: "10px",
     borderRadius: "8px",
     marginBottom: "10px",
   },
-
-  chargerRow: {
-    fontSize: "13px",
-    marginTop: "4px",
-  },
-
-  address: {
-    fontSize: "13px",
-    color: "#666",
-  },
-
+  chargerRow: { fontSize: "13px", marginTop: "4px" },
+  address: { fontSize: "13px", color: "#666" },
   primaryBtn: {
     width: "100%",
     padding: "10px",
@@ -260,7 +280,6 @@ const styles = {
     border: "none",
     borderRadius: "8px",
   },
-
   secondaryBtn: {
     width: "100%",
     padding: "8px",
@@ -270,7 +289,6 @@ const styles = {
     border: `1px solid ${colors.primary}`,
     borderRadius: "6px",
   },
-
   button: {
     padding: "10px",
     backgroundColor: colors.primary,
@@ -278,7 +296,6 @@ const styles = {
     border: "none",
     borderRadius: "8px",
   },
-
   empty: {
     height: "100vh",
     display: "flex",
