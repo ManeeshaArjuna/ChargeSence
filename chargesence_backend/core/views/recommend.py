@@ -68,7 +68,7 @@ def recommend_chargers(chargers, battery, vehicle_range, vehicle_connector, user
                 c["lat"], c["lng"]
             )
 
-            # ❌ REMOVE FAKE FALLBACK
+            #  REMOVE FAKE FALLBACK
             if real_dist is None:
                 continue
 
@@ -110,7 +110,7 @@ def recommend_api(request):
     vehicle_range = float(request.data.get("range", 400))
     connector = request.data.get("connector")
 
-    # ✅ FIX TYPE
+    #  FIX TYPE
     user_lat = float(request.data.get("user_lat"))
     user_lng = float(request.data.get("user_lng"))
 

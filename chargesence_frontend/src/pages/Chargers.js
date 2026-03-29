@@ -23,53 +23,87 @@ function Chargers() {
         stations.map((s, index) => (
           <div key={index} style={styles.card}>
 
-            {/* STATION DETAILS */}
-            <h3>{s.station_name}</h3>
-            <p style={styles.address}>{s.address}</p>
+            {/* HEADER */}
+            <div style={styles.header}>
+              <div>
+                <h3 style={styles.stationName}>{s.station_name}</h3>
+                <p style={styles.address}>{s.address}</p>
+              </div>
+            </div>
 
+            {/* ACTION ICONS */}
             <div style={styles.iconRow}>
               {s.phone && (
-                <a href={`tel:${s.phone}`} style={styles.icon}>📞</a>
+                <a href={`tel:${s.phone}`} style={styles.iconBtn}>
+                  📞 Call
+                </a>
               )}
 
               {s.map && (
-                <a href={s.map} target="_blank" rel="noreferrer" style={styles.icon}>
-                  📍
+                <a
+                  href={s.map}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={styles.iconBtn}
+                >
+                  📍 Directions
                 </a>
               )}
             </div>
 
             {/* CHARGERS */}
+            <div style={styles.sectionTitle}>Available Connectors</div>
+
             {s.chargers.map((c, i) => (
               <div key={i} style={styles.chargerRow}>
-                <span style={styles.connectorIcon}>
-                  {getConnectorIcon(c.connector)}
-                </span>
-                <span>{c.connector}</span>
-                <span>{c.power} kW</span>
-                <span>LKR {c.cost}</span>
+
+                {/* LEFT */}
+                <div style={styles.left}>
+                  <span style={styles.connectorIcon}>
+                    {getConnectorIcon(c.connector)}
+                  </span>
+                  <span style={styles.connectorType}>{c.connector}</span>
+
+                  {/* 🔥 STATUS */}
+                  <span
+                    style={{
+                      ...styles.status,
+                      backgroundColor: c.available ? "#fff3e0" : "#e6f9ed",
+                      color: c.available ? "#ef6c00" : "#2e7d32",
+                    }}
+                  >
+                    {c.available ? "Maintenance" : "Available"}
+                  </span>
+                </div>
+
+                {/* RIGHT */}
+                <div style={styles.right}>
+                  <span style={styles.power}>{c.power} kW</span>
+                  <span style={styles.price}>LKR {c.cost}</span>
+                </div>
+
               </div>
             ))}
 
           </div>
         ))
       ) : (
-        <p>No stations available</p>
+        <p style={{ textAlign: "center" }}>No stations available</p>
       )}
 
-      {/* NAVIGATION */}
+      {/* NAV */}
       <div style={styles.nav}>
         <p onClick={() => (window.location.href = "/dashboard")}>Home</p>
-        <p>Booking</p>
-        <p>History</p>
-        <p>Wallet</p>
-        <p style={styles.active}>More</p>
+        <p onClick={() => (window.location.href = "/booking")}>Booking</p>
+        <p onClick={() => (window.location.href = "/activity")}>Activity</p>
+        <p onClick={() => (window.location.href = "/wallet")}>Wallet</p>
+        <p onClick={() => (window.location.href = "/more")}>More</p>
       </div>
     </div>
   );
 }
 
-/* CONNECTOR ICON FUNCTION */
+/* ICON */
 function getConnectorIcon(type) {
   switch (type) {
     case "TYPE2": return "🔌";
@@ -79,30 +113,45 @@ function getConnectorIcon(type) {
   }
 }
 
+//////////////////////////////////////////////////
+//  STYLES
+//////////////////////////////////////////////////
+
 const styles = {
   container: {
     padding: "20px",
     backgroundColor: colors.light,
     minHeight: "100vh",
-    paddingBottom: "80px",
+    paddingBottom: "90px",
   },
 
   title: {
     marginBottom: "20px",
     color: colors.primary,
+    fontSize: "22px",
+    fontWeight: "bold",
   },
 
   card: {
     backgroundColor: colors.white,
-    padding: "15px",
-    borderRadius: "12px",
-    marginBottom: "15px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+    padding: "18px",
+    borderRadius: "14px",
+    marginBottom: "18px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+  },
+
+  header: {
+    marginBottom: "10px",
+  },
+
+  stationName: {
+    margin: 0,
+    fontSize: "18px",
   },
 
   address: {
     fontSize: "13px",
-    color: "#666",
+    color: "#777",
   },
 
   iconRow: {
@@ -111,21 +160,66 @@ const styles = {
     margin: "10px 0",
   },
 
-  icon: {
-    fontSize: "18px",
+  iconBtn: {
+    backgroundColor: "#f5f5f5",
+    padding: "6px 10px",
+    borderRadius: "8px",
+    fontSize: "13px",
     textDecoration: "none",
+    color: "#333",
+  },
+
+  sectionTitle: {
+    fontSize: "14px",
+    fontWeight: "bold",
+    marginTop: "10px",
+    marginBottom: "5px",
+    color: "#555",
   },
 
   chargerRow: {
     display: "flex",
     justifyContent: "space-between",
-    padding: "8px 0",
+    alignItems: "center",
+    padding: "10px 0",
     borderTop: "1px solid #eee",
-    fontSize: "14px",
+  },
+
+  left: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+  },
+
+  right: {
+    display: "flex",
+    gap: "12px",
+    fontSize: "13px",
   },
 
   connectorIcon: {
-    marginRight: "5px",
+    fontSize: "16px",
+  },
+
+  connectorType: {
+    fontWeight: "500",
+  },
+
+  power: {
+    color: "#444",
+  },
+
+  price: {
+    color: colors.primary,
+    fontWeight: "bold",
+  },
+
+  status: {
+    marginLeft: "8px",
+    padding: "2px 8px",
+    borderRadius: "8px",
+    fontSize: "11px",
+    fontWeight: "bold",
   },
 
   nav: {
@@ -136,13 +230,8 @@ const styles = {
     display: "flex",
     justifyContent: "space-around",
     backgroundColor: colors.white,
-    padding: "10px",
+    padding: "12px",
     borderTop: `1px solid ${colors.gray}`,
-  },
-
-  active: {
-    color: colors.primary,
-    fontWeight: "bold",
   },
 };
 

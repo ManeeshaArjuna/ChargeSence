@@ -158,7 +158,7 @@ function BookingPage() {
         Confirm & Pay
       </button>
 
-      {/* ✅ BACK BUTTON */}
+      {/*  BACK BUTTON */}
       <button
         style={styles.secondaryBtn}
         onClick={() =>
@@ -170,7 +170,7 @@ function BookingPage() {
         ← Back
       </button>
 
-      {/* ✅ NAVIGATION BAR */}
+      {/*  NAVIGATION BAR */}
       <div style={styles.nav}>
         <p onClick={() => (window.location.href = "/dashboard")}>Home</p>
         <p style={styles.active}>Booking Page</p>

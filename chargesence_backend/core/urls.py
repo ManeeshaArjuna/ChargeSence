@@ -1,7 +1,7 @@
 from django.urls import path
 
 from core.views.booking_view import available_slots, pay_booking, user_bookings
-from core.views.user_views import change_password, register_user, update_user
+from core.views.user_views import change_password, register_user, reset_password, update_user, verify_otp
 from core.views.vehicle_views import create_vehicle, delete_vehicle, list_vehicles
 from core.views.station_views import list_stations, station_chargers
 
@@ -38,6 +38,9 @@ from core.views.booking_view import (
     complete_booking,
     cancel_booking
 )
+
+from core.views.user_views import request_otp, verify_otp, reset_password
+from core.views.wallet_views import add_card, delete_card, get_cards, redeem_rewards
 
 
 
@@ -88,5 +91,15 @@ urlpatterns = [
     path('user/update/', update_user),
 
     path('vehicles/<int:id>/', delete_vehicle),
+
+    path('password/request-otp/', request_otp),
+    path('password/verify-otp/', verify_otp),
+    path('password/reset/', reset_password),
+
+    path('cards/', get_cards),
+    path('cards/add/', add_card),
+    path('cards/<int:id>/', delete_card),
+
+    path("redeem-rewards/", redeem_rewards),
 
 ]

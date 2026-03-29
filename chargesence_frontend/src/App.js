@@ -9,11 +9,13 @@ import More from "./pages/More";
 import Recommendation from "./pages/Recommendation";
 import BookingPage from "./pages/BookingPage";
 import ActivityPage from "./pages/ActivityPage";
+import LandingPage from "./pages/LandingPage";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Login />} />
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/dashboard" element={<Home />} />
       <Route path="/chargers" element={<Chargers />} />

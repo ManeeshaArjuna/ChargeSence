@@ -142,7 +142,7 @@ function ActivityPage() {
 const styles = {
   container: {
     padding: "20px",
-    paddingBottom: "80px", // ✅ space for nav
+    paddingBottom: "80px", //  space for nav
     minHeight: "100vh",
     backgroundColor: "#f5f5f5"
   },

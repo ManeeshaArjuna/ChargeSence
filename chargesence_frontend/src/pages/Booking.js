@@ -28,7 +28,7 @@ function Booking() {
     lng: 79.8612
   });
 
-  const [startCoords, setStartCoords] = useState(null); // ✅ FIX
+  const [startCoords, setStartCoords] = useState(null); //  FIX
   const [startAuto, setStartAuto] = useState(null);
   const [destAuto, setDestAuto] = useState(null);
 
@@ -125,8 +125,8 @@ function Booking() {
       range: 400,
       chargers: chargers,
       connector: selected ? selected.connector : null,
-      user_lat: startCoords.lat,   // ✅ FIX
-      user_lng: startCoords.lng    // ✅ FIX
+      user_lat: startCoords.lat,   //  FIX
+      user_lng: startCoords.lng    //  FIX
     })
       .then((res) => {
 
@@ -202,7 +202,7 @@ function Booking() {
             style={styles.input}
           />
 
-          {/* ✅ FIXED START */}
+          {/*  FIXED START */}
           <Autocomplete
             onLoad={setStartAuto}
             onPlaceChanged={() => {

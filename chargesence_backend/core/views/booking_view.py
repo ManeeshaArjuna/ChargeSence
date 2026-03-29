@@ -12,15 +12,16 @@ from datetime import datetime
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
+from core.models import Reward
 
 
 
 # ===============================
-# 📲 SMS FUNCTION
+#  SMS FUNCTION
 # ===============================
 def send_sms(phone, message):
     try:
-        # ✅ format phone
+        #  format phone
         if phone.startswith("0"):
             phone = "94" + phone[1:]
 
@@ -162,14 +163,14 @@ def create_booking(request):
 
         print("🔥 Incoming booking data:", request.data)
 
-        # 🔹 GET RAW DATA SAFELY
+        #  GET RAW DATA SAFELY
         charger_id = request.data.get("charger_id")
         vehicle_id = request.data.get("vehicle_id")
         connector = request.data.get("connector")
         start = request.data.get("start")
         duration = request.data.get("duration")
 
-        # 🔹 VALIDATION
+        #  VALIDATION
         if not charger_id or not vehicle_id or not start or not duration:
             return Response({"error": "Missing required fields"}, status=400)
 
@@ -180,7 +181,7 @@ def create_booking(request):
         except:
             return Response({"error": "Invalid numeric values"}, status=400)
 
-        # 🔥 SAFE FETCH (NO CRASH)
+        #  SAFE FETCH (NO CRASH)
         vehicle = Vehicle.objects.filter(id=vehicle_id, user=user).first()
         charger = Charger.objects.filter(id=charger_id).first()
 
@@ -190,7 +191,7 @@ def create_booking(request):
         if not charger:
             return Response({"error": "Charger not found"}, status=400)
 
-        # 🔥 SAFE DATETIME PARSE
+        #  SAFE DATETIME PARSE
         try:
             start_time = datetime.fromisoformat(start.split(".")[0])
             start_time = timezone.make_aware(start_time)
@@ -199,10 +200,10 @@ def create_booking(request):
 
         end_time = start_time + timedelta(minutes=duration)
 
-        # 💰 COST
+        #  COST
         amount = (duration // 5) * 25
 
-        # 🔥 CREATE BOOKING
+        #  CREATE BOOKING
         booking = Booking.objects.create(
             user=user,
             vehicle=vehicle,
@@ -228,7 +229,7 @@ def create_booking(request):
 
 
 # ===============================
-# 💳 PAY BOOKING (FINAL FIXED)
+#  PAY BOOKING (FINAL FIXED)
 # ===============================
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -242,7 +243,7 @@ def pay_booking(request):
         if not booking_id:
             return Response({"error": "booking_id missing"}, status=400)
 
-        # ✅ secure booking fetch
+        #  secure booking fetch
         booking = Booking.objects.filter(id=booking_id, user=user).first()
         if not booking:
             return Response({"error": "Booking not found"}, status=404)
@@ -257,7 +258,7 @@ def pay_booking(request):
         if wallet.balance < Decimal(str(booking.amount)):
             return Response({"error": "Insufficient balance"}, status=400)
 
-        # ✅ ATOMIC TRANSACTION (VERY IMPORTANT)
+        #  ATOMIC TRANSACTION (VERY IMPORTANT)
         with transaction.atomic():
 
             wallet.balance = wallet.balance - Decimal(str(booking.amount))
@@ -267,7 +268,7 @@ def pay_booking(request):
 
             schedule_reminder(booking)
 
-            # 💳 transaction record
+            #  transaction record
             WalletTransaction.objects.create(
                 wallet=wallet,
                 transaction_type='PAYMENT',
@@ -302,42 +303,65 @@ def pay_booking(request):
 @permission_classes([IsAuthenticated])
 def complete_booking(request):
     try:
-        booking = Booking.objects.get(id=request.data.get("booking_id"), user=request.user)
+        booking = Booking.objects.get(
+            id=request.data.get("booking_id"),
+            user=request.user
+        )
 
+        # 🔋 Energy & cost
         energy = Decimal(str(request.data.get("energy_used")))
         cost = energy * booking.charger.unit_cost
 
+        # 💳 Wallet
         wallet = Wallet.objects.get(user=request.user)
 
         if wallet.balance < cost:
             return Response({"error": "Insufficient balance"}, status=400)
 
+        # ✅ Deduct wallet (ONLY ONCE)
         wallet.balance -= cost
         wallet.save()
 
-        wallet.balance -= cost
-        wallet.save()
+        # ⚠️ Low balance alert
         check_low_balance(request.user, wallet)
 
+        # 💾 Transaction record
         WalletTransaction.objects.create(
             wallet=wallet,
             transaction_type='PAYMENT',
             amount=cost
         )
 
+        # 📦 Update booking
         booking.energy_used_kwh = energy
         booking.final_amount = cost
         booking.status = "COMPLETED"
         booking.save()
 
+        # 🎁 REWARD SYSTEM (FIXED)
+        reward_points = int(cost // 100)
+
+        reward_obj, _ = Reward.objects.get_or_create(user=request.user)
+        reward_obj.points += reward_points
+        reward_obj.save()
+
+        print(f"🎁 Reward added: {reward_points}")
+
+        # 📩 SMS
         send_sms(
             request.user.phone_number,
-            f"⚡ ChargeSense: Charging completed. Energy: {energy} kWh, Cost: Rs {cost}"
+            f"⚡ Charging completed. Cost: Rs {cost}. 🎁 Earned {reward_points} points!"
         )
 
-        return Response({"message": "Completed", "cost": cost})
+        return Response({
+            "message": "Completed",
+            "cost": float(cost),
+            "reward_points": reward_points
+        })
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return Response({"error": str(e)}, status=500)
 
 
@@ -359,7 +383,7 @@ def cancel_booking(request):
         if booking.status != "PAID":
             return Response({"error": "Cannot cancel this booking"}, status=400)
 
-        # ✅ FIX TIMEZONE ISSUE
+        #  FIX TIMEZONE ISSUE
         start_time = booking.start_time
 
         if timezone.is_naive(start_time):
@@ -370,7 +394,7 @@ def cancel_booking(request):
 
         wallet = Wallet.objects.get(user=request.user)
 
-        # 🔴 Late cancel fee
+        #  Late cancel fee
         if time_diff < timedelta(hours=1):
             fee = Decimal("50.00")
 

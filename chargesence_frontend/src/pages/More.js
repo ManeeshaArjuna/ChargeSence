@@ -125,7 +125,7 @@ function ProfileModal({ user, setUser, setActiveModal }) {
       .then(() => {
         alert("Profile updated");
 
-        // ✅ REFRESH USER
+        //  REFRESH USER
         API.get("user/profile/").then(res => {
           setUser(res.data);
           setActiveModal(null); // close modal

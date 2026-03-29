@@ -4,7 +4,7 @@ import {
   GoogleMap,
   LoadScript,
   Marker,
-  DirectionsRenderer   // ✅ FIX 1
+  DirectionsRenderer  
 } from "@react-google-maps/api";
 import { colors } from "../styles/colors";
 
@@ -42,7 +42,7 @@ useEffect(() => {
 
   const service = new window.google.maps.DirectionsService();
 
-  // 🔹 Route 1: Start → Charger
+  //  Route 1: Start → Charger
   service.route(
     {
       origin: best.start,
@@ -56,7 +56,7 @@ useEffect(() => {
     }
   );
 
-  // 🔹 Route 2: Charger → Destination
+  //  Route 2: Charger → Destination
   service.route(
     {
       origin: { lat: best.lat, lng: best.lng },
@@ -110,7 +110,7 @@ useEffect(() => {
   return (
     <div style={styles.container}>
 
-      {/* 🗺 MAP */}
+      {/*  MAP */}
       <div style={styles.mapContainer}>
         <LoadScript
           googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
@@ -134,20 +134,20 @@ useEffect(() => {
                 />
               )}
 
-              {/* ⭐ BEST */}
+              {/*  BEST */}
               {best?.lat && (
                 <Marker position={{ lat: best.lat, lng: best.lng }} label="⭐" />
               )}
 
-            {/* ✅ FIX 2: correct placement */}
+            {/* FIX 2: correct placement */}
             {directions && <DirectionsRenderer directions={directions} />}
 
-            {/* ⭐ BEST */}
+            {/*  BEST */}
             {best?.lat && (
               <Marker position={{ lat: best.lat, lng: best.lng }} label="⭐" />
             )}
 
-            {/* ⚡ OTHERS */}
+            {/*  OTHERS */}
             {others.map((c, i) =>
               c.lat ? (
                 <Marker
@@ -162,10 +162,10 @@ useEffect(() => {
         </LoadScript>
       </div>
 
-      {/* 📋 PANEL */}
+      {/*  PANEL */}
       <div style={styles.panel}>
 
-        {/* ⭐ BEST */}
+        {/*  BEST */}
         {best && (
           <div style={styles.bestCard}>
             <h3>⭐ Best Charger</h3>
@@ -199,7 +199,7 @@ useEffect(() => {
           </div>
         )}
 
-        {/* 📋 OTHERS */}
+        {/*  OTHERS */}
         <h4 style={{ marginTop: "10px" }}>Other Chargers</h4>
 
         {others.map((c, i) => (

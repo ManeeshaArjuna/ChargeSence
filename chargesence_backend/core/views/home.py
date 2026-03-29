@@ -7,7 +7,7 @@ from core.models import Wallet, Reward, Charger
 import math
 
 
-# Distance calculation (simple & safe)
+# Distance calculation
 def calculate_distance(lat1, lon1, lat2, lon2):
     return math.sqrt((lat1 - lat2) ** 2 + (lon1 - lon2) ** 2)
 
@@ -18,11 +18,11 @@ def home_dashboard(request):
     try:
         user = request.user
 
-        # Get or create wallet & rewards
+        # ✅ Wallet + Reward (existing system)
         wallet, _ = Wallet.objects.get_or_create(user=user)
         reward, _ = Reward.objects.get_or_create(user=user)
 
-        # Get user location
+        # 🌍 User location
         user_lat = request.query_params.get("lat")
         user_lng = request.query_params.get("lng")
 
@@ -39,7 +39,6 @@ def home_dashboard(request):
             for c in chargers:
                 station = c.station
 
-                # Ensure valid coordinates
                 if station.latitude is not None and station.longitude is not None:
 
                     distance = calculate_distance(
@@ -49,7 +48,6 @@ def home_dashboard(request):
                         station.longitude
                     )
 
-                    # Create station entry if not exists
                     if station.id not in station_dict:
                         station_dict[station.id] = {
                             "station_name": station.name,
@@ -60,27 +58,29 @@ def home_dashboard(request):
                             "chargers": []
                         }
 
-                    # Add charger under station
                     station_dict[station.id]["chargers"].append({
                         "connector": c.connector_type,
                         "power": float(c.power_kw),
                         "cost": float(c.unit_cost),
+                        "available": True  # ✅ always available (your logic)
                     })
 
-            # Convert to list + sort by nearest
             stations = list(station_dict.values())
             stations = sorted(stations, key=lambda x: x["distance"])[:3]
 
         return Response({
             "name": user.username,
             "balance": float(wallet.balance),
+
+            # 🎁 REWARD FIX (IMPORTANT)
             "rewards": reward.points,
+
             "favorites": [],
             "promotions": [
                 "⚡ 20% OFF fast charging",
                 "🔋 Free charging for 10 mins"
             ],
-            "stations": stations   #  changed from chargers → stations
+            "stations": stations
         })
 
     except Exception as e:

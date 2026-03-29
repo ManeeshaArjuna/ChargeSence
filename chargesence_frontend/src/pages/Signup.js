@@ -7,7 +7,7 @@ function Signup() {
     first_name: "",
     last_name: "",
     email: "",
-    phone: "",
+    phone_number: "",
     country_code: "+94",
     username: "",
     password: "",
@@ -31,7 +31,7 @@ function Signup() {
         email: form.email,
         username: form.username,
         password: form.password,
-        phone: form.country_code + form.phone,
+        phone_number: form.country_code + form.phone,
       });
 
       alert("Registration successful!");

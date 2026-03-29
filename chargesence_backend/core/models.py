@@ -1,6 +1,10 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from decimal import Decimal
+from django.contrib.auth.models import User
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 # ---------------- USER ----------------
@@ -193,3 +197,19 @@ class ChargingQueue(models.Model):
 
     def __str__(self):
         return f"Queue {self.id}"
+
+# ---------------- CARD ----------------
+
+class Card(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    card_number = models.CharField(max_length=16)
+    card_holder = models.CharField(max_length=100)
+    expiry = models.CharField(max_length=5)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def masked_number(self):
+        return f"**** **** **** {self.card_number[-4:]}"
+    
+    # REWARD POINTS
+
+    reward_points = models.IntegerField(default=0)

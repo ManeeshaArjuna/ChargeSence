@@ -11,7 +11,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'username',
             'email',
             'password',
-            'phone_number'
+            'first_name',         
+            'last_name',          
+            'phone_number'         
         ]
 
         extra_kwargs = {
@@ -19,5 +21,20 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
+
+        password = validated_data.pop('password')
+
+        #  Create user with all fields
+        user = User(**validated_data)
+
+        #  Hash password properly
+        user.set_password(password)
+
+        user.save()
+
         return user
+    
+    def validate_phone_number(self, value):
+        if len(value) < 10:
+            raise serializers.ValidationError("Invalid phone number")
+        return value

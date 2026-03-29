@@ -22,43 +22,84 @@ function Wallet() {
   const [mode, setMode] = useState("TOPUP");
   const [amount, setAmount] = useState("");
 
+  //////////////////////////////////////////////////
+  // LOAD DATA
+  //////////////////////////////////////////////////
   useEffect(() => {
     API.get("wallet/")
-      .then((res) => setData(res.data))
-      .catch((err) => console.error(err));
+      .then((res) => setData(res.data));
 
-    const savedCards = JSON.parse(localStorage.getItem("cards")) || [];
-    setCards(savedCards);
+    API.get("cards/")
+      .then((res) => setCards(res.data))
+      .catch((err) => console.error(err));
   }, []);
 
-    const handleTopup = () => {
-
+  //////////////////////////////////////////////////
+  // TOPUP
+  //////////////////////////////////////////////////
+  const handleTopup = () => {
     if (!selectedCard) {
-        alert("Please select a card");
-        return;
+      alert("Please select a card");
+      return;
     }
 
     if (!amount || Number(amount) <= 0) {
-        alert("Enter valid amount");
-        return;
+      alert("Enter valid amount");
+      return;
     }
 
     API.post("wallet/topup/", {
-    amount: Number(amount),
-    card_last4: selectedCard.number.slice(-4)
+      amount: Number(amount),
+      card_id: selectedCard.id
     })
-        .then((res) => {
+      .then(() => {
         alert("Top-up successful!");
-    API.get("wallet/")
-        .then((res) => setData(res.data));
-        setData({ ...data, balance: res.data.balance });
+
+        API.get("wallet/")
+          .then((res) => setData(res.data));
+
         setAmount("");
-        })
-        .catch((err) => {
-        console.log("TopUp Error:", err.response?.data);
+      })
+      .catch((err) => {
+        console.log(err.response?.data);
         alert("Top-up failed");
-        });
-    };
+      });
+  };
+
+  //////////////////////////////////////////////////
+  // SAVE CARD
+  //////////////////////////////////////////////////
+  const saveCard = () => {
+    if (!newCard.number) {
+      alert("Enter card details");
+      return;
+    }
+
+    API.post("cards/add/", {
+      number: newCard.number,
+      name: newCard.name,
+      expiry: newCard.expiry
+    })
+      .then(() => {
+        alert("Card saved");
+
+        API.get("cards/").then(res => setCards(res.data));
+
+        setNewCard({ number: "", name: "", expiry: "" });
+      })
+      .catch(() => alert("Error saving card"));
+  };
+
+  //////////////////////////////////////////////////
+  // DELETE CARD
+  //////////////////////////////////////////////////
+  const deleteCard = (id) => {
+    API.delete(`cards/${id}/`)
+      .then(() => {
+        setCards(cards.filter(c => c.id !== id));
+      })
+      .catch(() => alert("Delete failed"));
+  };
 
   return (
     <div style={styles.container}>
@@ -82,16 +123,14 @@ function Wallet() {
         </button>
       </div>
 
-      {/* TOPUP VIEW */}
+      {/* TOPUP */}
       {mode === "TOPUP" && (
         <>
-          {/* WALLET CARD */}
           <div style={styles.card}>
-            <h2 style={{ textAlign: "left" }}>ChargeSence</h2>
-            <h4 style={{ textAlign: "left" }}>Charge Card</h4>
-            <h2 style={{ textAlign: "right" }}>ChargeSence Balance</h2>
-            <p style={{ ...styles.balance, textAlign: "right" }}>LKR {data.balance}</p>
-            <h3>{data.name}</h3>
+            <h2>ChargeSence</h2>
+            <p>Balance</p>
+            <h2>LKR {data.balance}</h2>
+            <p>{data.name}</p>
           </div>
 
           <button
@@ -120,19 +159,11 @@ function Wallet() {
         <div>
           {data.transactions.length > 0 ? (
             data.transactions.map((t, i) => (
-                <div key={i} style={styles.tx}>
+              <div key={i} style={styles.tx}>
                 <p>{t.type}</p>
                 <p>LKR {t.amount}</p>
-
-                {/* Card Details */}
-                {t.card && (
-                    <p style={{ fontSize: "12px", color: "#666" }}>
-                    Card •••• {t.card}
-                    </p>
-                )}
-
                 <p style={styles.date}>{t.date}</p>
-                </div>
+              </div>
             ))
           ) : (
             <p>No transactions</p>
@@ -142,28 +173,32 @@ function Wallet() {
 
       {/* MODAL */}
       {showModal && (
-        <div
-          style={styles.modalOverlay}
-          onClick={() => setShowModal(false)}
-        >
-          <div
-            style={styles.modal}
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <h3>Select Card</h3>
 
-            {/* SAVED CARDS */}
+            {/* EXISTING CARDS */}
             {cards.length > 0 ? (
-              cards.map((c, i) => (
-                <div
-                  key={i}
-                  style={styles.cardItem}
-                  onClick={() => {
-                    setSelectedCard(c);
-                    setShowModal(false);
-                  }}
-                >
-                  {getCardType(c.number)} •••• {c.number.slice(-4)}
+              cards.map((c) => (
+                <div key={c.id} style={styles.cardItem}>
+                  <div
+                    onClick={() => {
+                      setSelectedCard(c);
+                      setShowModal(false);
+                    }}
+                  >
+                    {c.masked}
+                  </div>
+
+                  <button
+                    style={styles.deleteBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteCard(c.id);
+                    }}
+                  >
+                    ✕
+                  </button>
                 </div>
               ))
             ) : (
@@ -172,7 +207,7 @@ function Wallet() {
 
             <hr />
 
-            {/* CARD PREVIEW */}
+            {/* 💳 VIRTUAL CARD */}
             <div style={styles.cardPreview}>
               <div style={styles.cardTop}>
                 {getCardType(newCard.number)}
@@ -213,7 +248,7 @@ function Wallet() {
             />
 
             <input
-              placeholder="Expiry (MM/YY)"
+              placeholder="Expiry"
               value={newCard.expiry}
               onChange={(e) =>
                 setNewCard({ ...newCard, expiry: e.target.value })
@@ -221,21 +256,7 @@ function Wallet() {
               style={styles.input}
             />
 
-            <button
-              style={styles.button}
-              onClick={() => {
-                if (!newCard.number) {
-                  alert("Enter card details");
-                  return;
-                }
-
-                const updated = [...cards, newCard];
-                setCards(updated);
-                localStorage.setItem("cards", JSON.stringify(updated));
-
-                setNewCard({ number: "", name: "", expiry: "" });
-              }}
-            >
+            <button style={styles.button} onClick={saveCard}>
               Save Card
             </button>
 
@@ -261,157 +282,54 @@ function Wallet() {
   );
 }
 
-/* CARD TYPE DETECTION */
+//////////////////////////////////////////////////
+// HELPERS
+//////////////////////////////////////////////////
+
 function getCardType(number) {
   const num = number.replace(/\s/g, "");
-
   if (num.startsWith("4")) return "VISA";
   if (num.startsWith("5")) return "MASTERCARD";
-
   return "CARD";
 }
 
+//////////////////////////////////////////////////
+// STYLES
+//////////////////////////////////////////////////
+
 const styles = {
-  container: {
-    padding: "20px",
-    backgroundColor: colors.light,
-    minHeight: "100vh",
-  },
+  container: { padding: "20px", backgroundColor: colors.light, minHeight: "100vh" },
+  logo: { color: colors.primary },
+  switch: { display: "flex", gap: "10px", margin: "20px 0" },
+  btn: { flex: 1, padding: "10px" },
+  activeBtn: { flex: 1, padding: "10px", backgroundColor: colors.primary, color: "#fff" },
+  card: { backgroundColor: colors.primary, color: "#fff", padding: "20px", borderRadius: "12px" },
+  input: { width: "100%", padding: "10px", marginBottom: "10px" },
+  button: { width: "100%", padding: "10px", backgroundColor: colors.primary, color: "#fff" },
+  buttonSecondary: { width: "100%", padding: "10px", marginBottom: "10px" },
+  tx: { backgroundColor: "#fff", padding: "10px", marginBottom: "10px", borderRadius: "8px" },
+  date: { fontSize: "12px", color: "#888" },
+  nav: { position: "fixed", bottom: 0, width: "100%", display: "flex", justifyContent: "space-around", backgroundColor: "#fff", padding: "10px" },
+  active: { color: colors.primary, fontWeight: "bold" },
 
-  logo: {
-    color: colors.primary,
-  },
+  modalOverlay: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center" },
+  modal: { backgroundColor: "#fff", padding: "20px", borderRadius: "12px", width: "300px" },
 
-  switch: {
-    display: "flex",
-    gap: "10px",
-    margin: "20px 0",
-  },
+  cardItem: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px", border: "1px solid #ddd", borderRadius: "8px", marginBottom: "10px" },
 
-  btn: {
-    flex: 1,
-    padding: "10px",
-  },
+  deleteBtn: { background: "#ff4d4f", color: "#fff", border: "none", borderRadius: "6px", padding: "4px 8px", cursor: "pointer" },
 
-  activeBtn: {
-    flex: 1,
-    padding: "10px",
-    backgroundColor: colors.primary,
-    color: "#fff",
-  },
-
-  card: {
-    backgroundColor: colors.primary,
-    color: "#fff",
-    padding: "20px",
-    borderRadius: "12px",
-    marginBottom: "15px",
-  },
-
-  balance: {
-    fontSize: "24px",
-    fontWeight: "bold",
-  },
-
-  input: {
-    width: "100%",
-    padding: "10px",
-    marginBottom: "10px",
-  },
-
-  button: {
-    width: "100%",
-    padding: "10px",
-    backgroundColor: colors.primary,
-    color: "#fff",
-  },
-
-  buttonSecondary: {
-    width: "100%",
-    padding: "10px",
-    marginBottom: "10px",
-  },
-
-  tx: {
-    backgroundColor: "#fff",
-    padding: "10px",
-    marginBottom: "10px",
-    borderRadius: "8px",
-  },
-
-  date: {
-    fontSize: "12px",
-    color: "#888",
-  },
-
-  nav: {
-    position: "fixed",
-    bottom: 0,
-    width: "100%",
-    display: "flex",
-    justifyContent: "space-around",
-    backgroundColor: "#fff",
-    padding: "10px",
-  },
-
-  active: {
-    color: colors.primary,
-    fontWeight: "bold",
-  },
-
-  modalOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  modal: {
-    backgroundColor: "#fff",
-    padding: "20px",
-    borderRadius: "12px",
-    width: "300px",
-  },
-
-  cardItem: {
-    padding: "10px",
-    border: "1px solid #ddd",
-    borderRadius: "8px",
-    marginBottom: "10px",
-    cursor: "pointer",
-  },
-
-  /* NEW CARD UI */
   cardPreview: {
     background: "linear-gradient(135deg, #4CAF50, #2E7D32)",
     color: "#fff",
     padding: "15px",
     borderRadius: "12px",
-    marginBottom: "15px",
+    marginBottom: "15px"
   },
 
-  cardTop: {
-    display: "flex",
-    justifyContent: "flex-end",
-    fontWeight: "bold",
-  },
-
-  cardNumber: {
-    fontSize: "18px",
-    letterSpacing: "2px",
-    margin: "15px 0",
-  },
-
-  cardBottom: {
-    display: "flex",
-    justifyContent: "space-between",
-    fontSize: "14px",
-  },
+  cardTop: { display: "flex", justifyContent: "flex-end", fontWeight: "bold" },
+  cardNumber: { fontSize: "18px", letterSpacing: "2px", margin: "15px 0" },
+  cardBottom: { display: "flex", justifyContent: "space-between", fontSize: "14px" }
 };
 
 export default Wallet;

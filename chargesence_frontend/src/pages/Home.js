@@ -13,14 +13,76 @@ function Home() {
     stations: []
   });
 
+  //  Vehicle onboarding states
+  const [showVehicleModal, setShowVehicleModal] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+
+  const [manufacturer, setManufacturer] = useState("");
+  const [model, setModel] = useState("");
+  const [connector, setConnector] = useState("");
+  const [battery, setBattery] = useState("");
+  const [efficiency, setEfficiency] = useState("");
+
+  const [showRedeemModal, setShowRedeemModal] = useState(false);
+  const [redeemPoints, setRedeemPoints] = useState("");
+
+  //  REDEEM REWARDS
+
+  const redeemRewards = () => {
+    const points = parseInt(redeemPoints);
+
+    if (!points || points < 100) {
+      alert("Minimum 100 points required");
+      return;
+    }
+
+    if (points > data.rewards) {
+      alert("Not enough reward points");
+      return;
+    }
+
+    API.post("redeem-rewards/", { points })
+      .then(() => {
+        alert("Rewards redeemed successfully!");
+
+        setShowRedeemModal(false);
+        setRedeemPoints("");
+
+        // 🔥 refresh data
+        API.get("home/")
+          .then(res => {
+            setData({
+              name: res.data.name || "",
+              balance: res.data.balance || 0,
+              rewards: res.data.rewards || 0,
+              favorites: res.data.favorites || [],
+              promotions: res.data.promotions || [],
+              stations: res.data.stations || []
+            });
+          });
+      })
+      .catch(() => {
+        alert("Error redeeming rewards");
+      });
+  };
+
   useEffect(() => {
-    //  Get user location
+
+    //  CHECK VEHICLES
+    API.get("vehicles/list/")
+      .then(res => {
+        if (res.data.length === 0) {
+          setShowVehicleModal(true);
+        }
+      })
+      .catch(() => {});
+
+    //  EXISTING LOCATION + HOME API (UNCHANGED)
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
 
-        // Call API with location
         API.get(`home/?lat=${lat}&lng=${lng}`)
           .then((res) => {
             setData({
@@ -39,7 +101,6 @@ function Home() {
       (error) => {
         console.error("Location error:", error);
 
-        //  fallback (no location)
         API.get("home/")
           .then((res) => {
             setData({
@@ -48,12 +109,39 @@ function Home() {
               rewards: res.data.rewards || 0,
               favorites: res.data.favorites || [],
               promotions: res.data.promotions || [],
-              chargers: res.data.chargers || []
+              stations: res.data.stations || []
             });
           });
       }
     );
   }, []);
+
+  //////////////////////////////////////////////////
+  // ADD VEHICLE
+  //////////////////////////////////////////////////
+  const addVehicle = () => {
+
+    if (!manufacturer || !model || !connector || !battery || !efficiency) {
+      alert("Fill all fields");
+      return;
+    }
+
+    API.post("vehicles/", {
+      manufacturer,
+      model,
+      connector_type: connector,
+      battery_capacity_kwh: parseFloat(battery),
+      efficiency_wh_per_km: parseFloat(efficiency)
+    })
+      .then(() => {
+        alert("Vehicle added");
+        setShowVehicleModal(false);
+      })
+      .catch(err => {
+        console.log("ERROR:", err.response?.data);
+        alert("Error adding vehicle");
+      });
+  };
 
   if (!data.name) {
     return <h2 style={{ textAlign: "center" }}>Loading...</h2>;
@@ -62,13 +150,124 @@ function Home() {
   return (
     <div style={styles.container}>
 
-      {/* HEADER */}
+      {/*  VEHICLE REQUIRED MODAL */}
+      {showVehicleModal && (
+        <div style={styles.overlay}>
+          <div style={styles.modal}>
+
+            <h3>🚗 Add Your Vehicle</h3>
+            <p>You need to add a vehicle to continue</p>
+
+            {!showForm ? (
+              <>
+                <button style={styles.button} onClick={() => setShowForm(true)}>
+                  Add Vehicle Now
+                </button>
+
+                <button
+                  style={styles.buttonSecondary}
+                  onClick={() => setShowVehicleModal(false)}
+                >
+                  Add Later
+                </button>
+              </>
+            ) : (
+              <>
+                <input
+                  style={styles.input}
+                  placeholder="Manufacturer"
+                  value={manufacturer}
+                  onChange={(e) => setManufacturer(e.target.value)}
+                />
+
+                <input
+                  style={styles.input}
+                  placeholder="Model"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                />
+
+                <select
+                  style={styles.input}
+                  value={connector}
+                  onChange={(e) => setConnector(e.target.value)}
+                >
+                  <option value="">Select Connector</option>
+                  <option value="TYPE1">Type 1</option>
+                  <option value="TYPE2">Type 2</option>
+                  <option value="CCS">CCS</option>
+                  <option value="CCS2">CCS2</option>
+                  <option value="CHADEMO">CHAdeMO</option>
+                </select>
+
+                <input
+                  style={styles.input}
+                  placeholder="Battery (kWh)"
+                  value={battery}
+                  onChange={(e) => setBattery(e.target.value)}
+                />
+
+                <input
+                  style={styles.input}
+                  placeholder="Efficiency (Wh/km)"
+                  value={efficiency}
+                  onChange={(e) => setEfficiency(e.target.value)}
+                />
+
+                <button style={styles.button} onClick={addVehicle}>
+                  Save Vehicle
+                </button>
+              </>
+            )}
+
+          </div>
+        </div>
+        
+      )}
+
+            {/*  REDEEM MODAL (FIXED POSITION) */}
+      {showRedeemModal && (
+        <div style={styles.overlay}>
+          <div style={styles.modal}>
+            <h3>🎁 Redeem Rewards</h3>
+
+            <p>You have {data.rewards} points</p>
+
+            {data.rewards < 100 ? (
+              <p style={{ color: "red" }}>Minimum 100 points required</p>
+            ) : (
+              <>
+                <input
+                  style={styles.input}
+                  type="number"
+                  placeholder="Enter points"
+                  value={redeemPoints}
+                  onChange={(e) => setRedeemPoints(e.target.value)}
+                />
+
+                <button style={styles.button} onClick={redeemRewards}>
+                  Redeem
+                </button>
+              </>
+            )}
+
+            <button
+              style={{ ...styles.buttonSecondary, marginTop: "10px" }}
+              onClick={() => setShowRedeemModal(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ===== ORIGINAL UI (UNCHANGED) ===== */}
+
       <div style={styles.header}>
         <h2 style={styles.logo}>⚡ ChargeSence</h2>
         <p>Welcome, {data.name}</p>
       </div>
 
-      {/* PROMOTION */}
       <div style={styles.banner}>
         <p>
           {data.promotions.length > 0
@@ -77,7 +276,6 @@ function Home() {
         </p>
       </div>
 
-      {/* BALANCE */}
       <div style={styles.card}>
         <h3>ChargeSence Balance</h3>
         <p style={styles.amount}>LKR {data.balance}</p>
@@ -86,14 +284,24 @@ function Home() {
         </button>
       </div>
 
-      {/* REWARDS */}
-      <div style={styles.card}>
-        <h3>Rewards Points</h3>
-        <p style={styles.amount}>{data.rewards} pts</p>
-        <button style={styles.buttonSecondary}>Redeem</button>
+      <div style={styles.rewardCard}>
+        <div style={styles.rewardHeader}>
+          <span>🎁 Rewards</span>
+          <span style={styles.rewardValue}>{data.rewards} pts</span>
+        </div>
+
+        <p style={styles.rewardSub}>
+          Earn 1 point for every LKR 100 spent
+        </p>
+
+        <button
+          style={styles.buttonSecondary}
+          onClick={() => setShowRedeemModal(true)}
+        >
+          Redeem Rewards
+        </button>
       </div>
 
-      {/* FAVORITES */}
       <div style={styles.card}>
         <h3>Favorite Chargers</h3>
 
@@ -108,7 +316,6 @@ function Home() {
         <button style={styles.button}>+ Add Favorite</button>
       </div>
 
-      {/* NEARBY STATIONS */}
       <div style={styles.card}>
         <h3>Nearby Charging Stations</h3>
 
@@ -155,7 +362,6 @@ function Home() {
         </button>
       </div>
 
-      {/* NAVIGATION */}
       <div style={styles.nav}>
         <p style={styles.active}>Home</p>
         <p onClick={() => (window.location.href = "/booking")}>Booking</p>
@@ -168,7 +374,10 @@ function Home() {
   );
 }
 
-/* Styles */
+//////////////////////////////////////////////////
+// STYLES (ADDED MODAL STYLES ONLY)
+//////////////////////////////////////////////////
+
 const styles = {
   container: {
     padding: "20px",
@@ -176,14 +385,38 @@ const styles = {
     minHeight: "100vh",
   },
 
-  header: {
-    marginBottom: "20px",
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    zIndex: 999
   },
 
-  logo: {
-    color: colors.primary,
-    marginBottom: "5px",
+  modal: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    backgroundColor: "#fff",
+    padding: "20px",
+    borderRadius: "12px",
+    width: "90%",
+    maxWidth: "400px"
   },
+
+  input: {
+    width: "100%",
+    padding: "10px",
+    marginBottom: "10px",
+    borderRadius: "8px",
+    border: "1px solid #ccc"
+  },
+
+  header: { marginBottom: "20px" },
+  logo: { color: colors.primary },
 
   banner: {
     backgroundColor: colors.primary,
@@ -202,11 +435,7 @@ const styles = {
     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
   },
 
-  amount: {
-    fontSize: "20px",
-    fontWeight: "bold",
-    margin: "10px 0",
-  },
+  amount: { fontSize: "20px", fontWeight: "bold" },
 
   button: {
     padding: "10px",
@@ -215,7 +444,6 @@ const styles = {
     border: "none",
     backgroundColor: colors.primary,
     color: "#fff",
-    cursor: "pointer",
     fontWeight: "bold",
   },
 
@@ -226,20 +454,16 @@ const styles = {
     border: `1px solid ${colors.primary}`,
     backgroundColor: colors.white,
     color: colors.primary,
-    cursor: "pointer",
-    fontWeight: "bold",
   },
 
   nav: {
     position: "fixed",
     bottom: 0,
-    left: 0,
     width: "100%",
     display: "flex",
     justifyContent: "space-around",
     backgroundColor: colors.white,
     padding: "10px",
-    borderTop: `1px solid ${colors.gray}`,
   },
 
   active: {
@@ -247,21 +471,31 @@ const styles = {
     fontWeight: "bold",
   },
 
-  grid: {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: "10px",
+  rewardCard: {
+    background: "linear-gradient(135deg, #FFD54F, #FFA000)",
+    padding: "15px",
+    borderRadius: "12px",
+    marginBottom: "15px",
+    color: "#fff",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.2)"
   },
 
-  tile: {
-    backgroundColor: "#fff",
-    padding: "10px",
-    borderRadius: "10px",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-    textAlign: "center",
+  rewardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    fontSize: "16px",
+    fontWeight: "bold"
   },
 
-  
+  rewardValue: {
+    fontSize: "22px"
+  },
+
+  rewardSub: {
+    fontSize: "12px",
+    marginTop: "5px"
+  },
 };
 
 function getConnectorIcon(type) {
