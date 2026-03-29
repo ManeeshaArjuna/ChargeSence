@@ -1,7 +1,7 @@
 from django.urls import path
 
 from core.views.booking_view import available_slots, pay_booking, user_bookings
-from core.views.user_views import change_password, register_user, reset_password, update_user, verify_otp
+from core.views.user_views import CustomLoginView, change_password, register_user, reset_password, update_user, verify_otp
 from core.views.vehicle_views import create_vehicle, delete_vehicle, list_vehicles
 from core.views.station_views import list_stations, station_chargers
 
@@ -11,7 +11,7 @@ from core.views.recommendation_views import recommend_best_charger
 
 from core.views.queue_views import join_queue
 
-from core.views.admin_views import admin_dashboard
+from core.views.admin_views import  admin_stats
 
 from core.views.home import home_dashboard
 
@@ -42,6 +42,10 @@ from core.views.booking_view import (
 from core.views.user_views import request_otp, verify_otp, reset_password
 from core.views.wallet_views import add_card, delete_card, get_cards, redeem_rewards
 
+from core.views.user_views import CustomLoginView
+
+from core.views.admin_views import get_users, create_user, update_user, delete_user
+
 
 
 urlpatterns = [
@@ -59,8 +63,6 @@ urlpatterns = [
     path('recommend-charger/<int:vehicle_id>/', recommend_best_charger),
 
     path('queue/join/', join_queue),
-
-    path('admin/dashboard/', admin_dashboard),
 
     path("home/", home_dashboard),
 
@@ -101,5 +103,14 @@ urlpatterns = [
     path('cards/<int:id>/', delete_card),
 
     path("redeem-rewards/", redeem_rewards),
+
+    path("login/", CustomLoginView.as_view()),
+
+    path("admin/stats/", admin_stats),
+
+    path("admin/users/", get_users),
+    path("admin/users/create/", create_user),
+    path("admin/users/<int:id>/", update_user),
+    path("admin/users/<int:id>/delete/", delete_user),
 
 ]

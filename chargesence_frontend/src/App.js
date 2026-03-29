@@ -10,6 +10,8 @@ import Recommendation from "./pages/Recommendation";
 import BookingPage from "./pages/BookingPage";
 import ActivityPage from "./pages/ActivityPage";
 import LandingPage from "./pages/LandingPage";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminUsers from "./pages/AdminUsers";
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
       <Route path="/recommendation" element={<Recommendation />} />
       <Route path="/bookingpage" element={<BookingPage />} />
       <Route path="/activity" element={<ActivityPage />} />
+      <Route path="/admin-dashboard" element={<AdminDashboard />} />
+      <Route path="/admin-users" element={<AdminUsers />} />
     </Routes>
   );
 }

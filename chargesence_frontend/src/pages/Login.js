@@ -30,9 +30,20 @@ function Login() {
         password,
       });
 
-      localStorage.setItem("token", response.data.access);
-      alert("Login successful!");
+    //  EXTRACT DATA
+    const { access, is_superuser } = response.data;
+
+    //  SAVE TOKEN
+    localStorage.setItem("token", access);
+
+    alert("Login successful!");
+
+    //  ROLE REDIRECT
+    if (is_superuser) {
+      navigate("/admin-dashboard");
+    } else {
       navigate("/dashboard");
+    }
 
     } catch (error) {
       console.log("Login Error:", error.response?.data);

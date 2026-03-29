@@ -4,9 +4,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
+from rest_framework_simplejwt.views import TokenObtainPairView
+from core.serializers.custom_token_serializer import CustomTokenSerializer
+
 from core.serializers.user_serializer import UserRegistrationSerializer
 from core.models import User
 from core.views.booking_view import send_sms
+
+class CustomLoginView(TokenObtainPairView):
+    serializer_class = CustomTokenSerializer
 
 
 @api_view(['POST'])
