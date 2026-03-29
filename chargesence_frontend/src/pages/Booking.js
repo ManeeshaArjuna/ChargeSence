@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { colors } from "../styles/colors";
 import API from "../api/api";
 import { useNavigate } from "react-router-dom";
 
@@ -28,7 +27,7 @@ function Booking() {
     lng: 79.8612
   });
 
-  const [startCoords, setStartCoords] = useState(null); //  FIX
+  const [startCoords, setStartCoords] = useState(null);
   const [startAuto, setStartAuto] = useState(null);
   const [destAuto, setDestAuto] = useState(null);
 
@@ -36,7 +35,7 @@ function Booking() {
   const [selectedVehicle, setSelectedVehicle] = useState("");
 
   //////////////////////////////////////////////////
-  // USER LOCATION (ONLY FOR MAP CENTER)
+  // USER LOCATION
   //////////////////////////////////////////////////
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -95,9 +94,7 @@ function Booking() {
   //////////////////////////////////////////////////
   const fetchChargers = (points) => {
     API.post("route-chargers/", { points })
-      .then((res) => {
-        setChargers(res.data.data);
-      })
+      .then((res) => setChargers(res.data.data))
       .catch((err) => console.error(err));
   };
 
@@ -118,15 +115,13 @@ function Booking() {
 
     const selected = vehicles.find(v => v.id === selectedVehicle);
 
-    console.log("START COORDS:", startCoords); // DEBUG
-
     API.post("recommend/", {
       battery: battery,
       range: 400,
       chargers: chargers,
       connector: selected ? selected.connector : null,
-      user_lat: startCoords.lat,   //  FIX
-      user_lng: startCoords.lng    //  FIX
+      user_lat: startCoords.lat,
+      user_lng: startCoords.lng
     })
       .then((res) => {
 
@@ -176,10 +171,10 @@ function Booking() {
 
         </GoogleMap>
 
-        {/* FORM */}
+        {/* PREMIUM FORM OVERLAY */}
         <div style={styles.overlay}>
 
-          <h3>⚡ Book Charging</h3>
+          <h3 style={styles.title}>⚡ Smart Booking</h3>
 
           <select
             style={styles.input}
@@ -202,7 +197,6 @@ function Booking() {
             style={styles.input}
           />
 
-          {/*  FIXED START */}
           <Autocomplete
             onLoad={setStartAuto}
             onPlaceChanged={() => {
@@ -267,13 +261,14 @@ function Booking() {
           </select>
 
           <button style={styles.button} onClick={findBestCharger}>
-            Find Best Charger
+            🚀 Find Best Charger
           </button>
 
         </div>
 
       </LoadScript>
 
+      {/* NAV */}
       <div style={styles.nav}>
         <p onClick={() => (window.location.href = "/dashboard")}>Home</p>
         <p style={styles.active}>Booking</p>
@@ -286,49 +281,81 @@ function Booking() {
   );
 }
 
+//////////////////////////////////////////////////
+// STYLES (PREMIUM UPGRADE)
+//////////////////////////////////////////////////
+
 const styles = {
-  container: { height: "100vh", position: "relative" },
-  map: { height: "100%", width: "100%" },
+  container: {
+    height: "100vh",
+    position: "relative",
+    fontFamily: "'Segoe UI', sans-serif"
+  },
+
+  map: {
+    height: "100%",
+    width: "100%"
+  },
+
   overlay: {
     position: "absolute",
     top: "20px",
     left: "50%",
     transform: "translateX(-50%)",
-    width: "90%",
-    maxWidth: "400px",
-    backgroundColor: "rgba(255,255,255,0.6)",
-    backdropFilter: "blur(10px)",
-    padding: "15px",
-    borderRadius: "12px",
+    width: "92%",
+    maxWidth: "420px",
+    background: "rgba(0,0,0,0.45)",
+    backdropFilter: "blur(16px)",
+    padding: "20px",
+    borderRadius: "20px",
     zIndex: 10,
+    boxShadow: "0 8px 30px rgba(0,0,0,0.4)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    color: "#fff"
   },
+
+  title: {
+    textAlign: "center",
+    marginBottom: "15px"
+  },
+
   input: {
     width: "100%",
-    padding: "10px",
-    marginBottom: "10px",
-    borderRadius: "8px",
-    border: "1px solid #ccc",
+    padding: "14px",
+    marginBottom: "12px",
+    borderRadius: "14px",
+    border: "1px solid rgba(255,255,255,0.2)",
+    background: "rgba(255,255,255,0.08)",
+    color: "#fff",
+    outline: "none"
   },
+
   button: {
     width: "100%",
-    padding: "12px",
-    backgroundColor: colors.primary,
-    color: "#fff",
-    borderRadius: "8px",
+    padding: "14px",
+    borderRadius: "30px",
     border: "none",
+    background: "linear-gradient(135deg, #00e676, #00c6ff)",
+    color: "#000",
+    fontWeight: "bold",
+    marginTop: "10px"
   },
+
   nav: {
     position: "fixed",
     bottom: 0,
     width: "100%",
     display: "flex",
     justifyContent: "space-around",
-    backgroundColor: "#fff",
-    padding: "10px",
+    background: "rgba(0,0,0,0.4)",
+    backdropFilter: "blur(15px)",
+    padding: "14px",
+    borderTop: "1px solid rgba(255,255,255,0.1)"
   },
+
   active: {
-    color: colors.primary,
-    fontWeight: "bold",
+    color: "#00e676",
+    fontWeight: "bold"
   }
 };
 

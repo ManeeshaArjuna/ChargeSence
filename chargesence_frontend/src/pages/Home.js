@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import API from "../api/api";
-import { colors } from "../styles/colors";
 
 function Home() {
 
@@ -48,7 +47,7 @@ function Home() {
         setShowRedeemModal(false);
         setRedeemPoints("");
 
-        // 🔥 refresh data
+        //  refresh data
         API.get("home/")
           .then(res => {
             setData({
@@ -77,7 +76,7 @@ function Home() {
       })
       .catch(() => {});
 
-    //  EXISTING LOCATION + HOME API (UNCHANGED)
+    //  EXISTING LOCATION + HOME API 
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = position.coords.latitude;
@@ -261,7 +260,7 @@ function Home() {
         </div>
       )}
 
-      {/* ===== ORIGINAL UI (UNCHANGED) ===== */}
+      {/* ===== ORIGINAL UI ===== */}
 
       <div style={styles.header}>
         <h2 style={styles.logo}>⚡ ChargeSence</h2>
@@ -345,7 +344,7 @@ function Home() {
                 </div>
               ))}
 
-              <p style={{ fontSize: "12px", color: "#888" }}>
+              <p style={{ fontSize: "12px", color: "#00e676" }}>
                 {s.distance?.toFixed(2)} km away
               </p>
             </div>
@@ -380,80 +379,111 @@ function Home() {
 
 const styles = {
   container: {
-    padding: "20px",
-    backgroundColor: colors.light,
     minHeight: "100vh",
+    paddingBottom: "80px",
+    fontFamily: "'Segoe UI', sans-serif",
+    background: "linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #00c6ff)",
+    color: "#fff"
   },
 
-  overlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    zIndex: 999
+  header: {
+    padding: "20px 10px",
+    textAlign: "center"
   },
 
-  modal: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    backgroundColor: "#fff",
-    padding: "20px",
-    borderRadius: "12px",
-    width: "90%",
-    maxWidth: "400px"
+  logo: {
+    fontSize: "22px",
+    fontWeight: "bold"
   },
-
-  input: {
-    width: "100%",
-    padding: "10px",
-    marginBottom: "10px",
-    borderRadius: "8px",
-    border: "1px solid #ccc"
-  },
-
-  header: { marginBottom: "20px" },
-  logo: { color: colors.primary },
 
   banner: {
-    backgroundColor: colors.primary,
-    color: "#fff",
-    padding: "15px",
-    borderRadius: "10px",
+    background: "rgba(255,255,255,0.15)",
+    backdropFilter: "blur(10px)",
+    padding: "12px",
+    borderRadius: "12px",
     marginBottom: "15px",
-    textAlign: "center",
+    textAlign: "center"
   },
 
   card: {
-    backgroundColor: colors.white,
+    background: "rgba(255,255,255,0.1)",
+    backdropFilter: "blur(10px)",
     padding: "15px",
-    borderRadius: "12px",
+    borderRadius: "16px",
     marginBottom: "15px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.2)"
   },
 
-  amount: { fontSize: "20px", fontWeight: "bold" },
+  amount: {
+    fontSize: "24px",
+    fontWeight: "bold",
+    margin: "10px 0"
+  },
 
   button: {
     padding: "10px",
     width: "100%",
-    borderRadius: "8px",
+    borderRadius: "20px",
     border: "none",
-    backgroundColor: colors.primary,
-    color: "#fff",
+    background: "#00e676",
+    color: "#000",
     fontWeight: "bold",
+    marginTop: "10px"
   },
 
   buttonSecondary: {
     padding: "10px",
     width: "100%",
-    borderRadius: "8px",
-    border: `1px solid ${colors.primary}`,
-    backgroundColor: colors.white,
-    color: colors.primary,
+    borderRadius: "20px",
+    border: "1px solid #6d6363",
+    background: "transparent",
+    color: "#6d6363",
+    marginTop: "10px"
+  },
+
+  rewardCard: {
+    background: "linear-gradient(135deg, #FFD54F, #FFA000)",
+    padding: "15px",
+    borderRadius: "16px",
+    marginBottom: "15px",
+    color: "#000",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.3)"
+  },
+
+  rewardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    fontWeight: "bold"
+  },
+
+  rewardValue: {
+    fontSize: "20px"
+  },
+
+  rewardSub: {
+    fontSize: "12px"
+  },
+
+  address: {
+    fontSize: "12px",
+    opacity: 0.8
+  },
+
+  chargerRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    fontSize: "12px",
+    marginTop: "5px"
+  },
+
+  iconRow: {
+    display: "flex",
+    gap: "10px",
+    marginTop: "8px"
+  },
+
+  icon: {
+    fontSize: "18px"
   },
 
   nav: {
@@ -462,40 +492,50 @@ const styles = {
     width: "100%",
     display: "flex",
     justifyContent: "space-around",
-    backgroundColor: colors.white,
-    padding: "10px",
+    background: "rgba(242, 235, 235, 0.1)",
+    backdropFilter: "blur(10px)",
+    padding: "12px"
   },
 
   active: {
-    color: colors.primary,
     fontWeight: "bold",
+    color: "#00e676"
   },
 
-  rewardCard: {
-    background: "linear-gradient(135deg, #FFD54F, #FFA000)",
-    padding: "15px",
-    borderRadius: "12px",
-    marginBottom: "15px",
-    color: "#fff",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.2)"
-  },
-
-  rewardHeader: {
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.6)",
+    zIndex: 9999,
     display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    fontSize: "16px",
-    fontWeight: "bold"
+    justifyContent: "center",
+    alignItems: "center"
   },
 
-  rewardValue: {
-    fontSize: "22px"
+  modal: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    background: "#fff",
+    color: "#000",
+    padding: "20px",
+    borderRadius: "12px",
+    width: "90%",
+    maxWidth: "400px",
+    zIndex: 10000
   },
 
-  rewardSub: {
-    fontSize: "12px",
-    marginTop: "5px"
-  },
+  input: {
+    width: "95%",
+    padding: "10px",
+    marginBottom: "10px",
+    borderRadius: "8px",
+    border: "1px solid #ccc"
+  }
 };
 
 function getConnectorIcon(type) {

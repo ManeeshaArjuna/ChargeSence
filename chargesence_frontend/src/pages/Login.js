@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import API from "../api/api";
-import { colors } from "../styles/colors";
 import { useNavigate } from "react-router-dom";
 
 function Login() {
@@ -8,7 +7,6 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  //  Forgot password states
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(1);
 
@@ -17,6 +15,8 @@ function Login() {
   const [otp, setOtp] = useState("");
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
+
+  const [hoverBtn, setHoverBtn] = useState(false);
 
   const navigate = useNavigate();
 
@@ -30,20 +30,17 @@ function Login() {
         password,
       });
 
-    //  EXTRACT DATA
-    const { access, is_superuser } = response.data;
+      const { access, is_superuser } = response.data;
 
-    //  SAVE TOKEN
-    localStorage.setItem("token", access);
+      localStorage.setItem("token", access);
 
-    alert("Login successful!");
+      alert("Login successful!");
 
-    //  ROLE REDIRECT
-    if (is_superuser) {
-      navigate("/admin-dashboard");
-    } else {
-      navigate("/dashboard");
-    }
+      if (is_superuser) {
+        navigate("/admin-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
 
     } catch (error) {
       console.log("Login Error:", error.response?.data);
@@ -52,7 +49,7 @@ function Login() {
   };
 
   //////////////////////////////////////////////////
-  // OTP FLOW
+  // OTP FLOW (UNCHANGED)
   //////////////////////////////////////////////////
   const requestOTP = () => {
     API.post("password/request-otp/", {
@@ -96,12 +93,16 @@ function Login() {
 
   return (
     <div style={styles.container}>
+
+      {/* BACKGROUND */}
+      <div style={styles.background}></div>
+      <div style={styles.overlay}></div>
+
       <div style={styles.card}>
 
-        <h1 style={styles.title}>⚡ ChargeSence</h1>
-        <h2 style={styles.subtitle}>LOGIN</h2>
+        <h1 style={styles.title}>⚡ ChargeSense</h1>
+        <h2 style={styles.subtitle}>Welcome Back</h2>
 
-        {/* Username */}
         <input
           type="text"
           placeholder="Username"
@@ -110,7 +111,6 @@ function Login() {
           onChange={(e) => setUsername(e.target.value)}
         />
 
-        {/* Password */}
         <input
           type="password"
           placeholder="Password"
@@ -119,109 +119,67 @@ function Login() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        {/* Forgot Password */}
         <p style={styles.link} onClick={() => setShowModal(true)}>
           Forgot Password?
         </p>
 
-        <button style={styles.button} onClick={handleLogin}>
+        <button
+          style={{
+            ...styles.button,
+            ...(hoverBtn ? styles.buttonHover : {})
+          }}
+          onMouseEnter={() => setHoverBtn(true)}
+          onMouseLeave={() => setHoverBtn(false)}
+          onClick={handleLogin}
+        >
           Login
         </button>
 
-        {/* Divider */}
-        <p style={{ margin: "15px 0" }}>OR</p>
+        <p style={styles.divider}>OR</p>
 
-        {/*  PRESERVED */}
-        <button style={styles.googleBtn}>
-          Login with Google
-        </button>
+        <button style={styles.googleBtn}>Login with Google</button>
+        <button style={styles.appleBtn}>Login with Apple</button>
 
-        <button style={styles.appleBtn}>
-          Login with Apple
-        </button>
-
-        {/* Register */}
         <p style={{ marginTop: "20px" }}>
-          New to ChargeSence?{" "}
-          <span
-            style={styles.link}
-            onClick={() => navigate("/signup")}
-          >
+          New to ChargeSense?{" "}
+          <span style={styles.link} onClick={() => navigate("/signup")}>
             SIGN UP
           </span>
         </p>
       </div>
 
-      {/*  MODAL */}
+      {/* MODAL */}
       {showModal && (
-        <div style={styles.overlay}>
+        <div style={styles.modalOverlay}>
           <div style={styles.modal}>
 
             {step === 1 && (
               <>
                 <h3>Verify User</h3>
-                <input
-                  placeholder="Username"
-                  style={styles.input}
-                  value={fpUsername}
-                  onChange={(e) => setFpUsername(e.target.value)}
-                />
-                <input
-                  placeholder="Last 4 digits of phone"
-                  style={styles.input}
-                  value={last4}
-                  onChange={(e) => setLast4(e.target.value)}
-                />
-                <button style={styles.button} onClick={requestOTP}>
-                  Send OTP
-                </button>
+                <input placeholder="Username" style={styles.input} value={fpUsername} onChange={(e) => setFpUsername(e.target.value)} />
+                <input placeholder="Last 4 digits of phone" style={styles.input} value={last4} onChange={(e) => setLast4(e.target.value)} />
+                <button style={styles.button} onClick={requestOTP}>Send OTP</button>
               </>
             )}
 
             {step === 2 && (
               <>
                 <h3>Enter OTP</h3>
-                <input
-                  placeholder="OTP"
-                  style={styles.input}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                />
-                <button style={styles.button} onClick={verifyOTP}>
-                  Verify OTP
-                </button>
+                <input placeholder="OTP" style={styles.input} value={otp} onChange={(e) => setOtp(e.target.value)} />
+                <button style={styles.button} onClick={verifyOTP}>Verify OTP</button>
               </>
             )}
 
             {step === 3 && (
               <>
                 <h3>Reset Password</h3>
-                <input
-                  type="password"
-                  placeholder="New Password"
-                  style={styles.input}
-                  value={newPass}
-                  onChange={(e) => setNewPass(e.target.value)}
-                />
-                <input
-                  type="password"
-                  placeholder="Confirm Password"
-                  style={styles.input}
-                  value={confirmPass}
-                  onChange={(e) => setConfirmPass(e.target.value)}
-                />
-                <button style={styles.button} onClick={resetPassword}>
-                  Reset Password
-                </button>
+                <input type="password" placeholder="New Password" style={styles.input} value={newPass} onChange={(e) => setNewPass(e.target.value)} />
+                <input type="password" placeholder="Confirm Password" style={styles.input} value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} />
+                <button style={styles.button} onClick={resetPassword}>Reset Password</button>
               </>
             )}
 
-            <button
-              style={{ marginTop: "10px" }}
-              onClick={() => setShowModal(false)}
-            >
-              Close
-            </button>
+            <button style={styles.closeBtn} onClick={() => setShowModal(false)}>Close</button>
 
           </div>
         </div>
@@ -232,7 +190,7 @@ function Login() {
 }
 
 //////////////////////////////////////////////////
-// STYLES (UNCHANGED + MODAL)
+//  STYLES (MATCH LANDING PAGE)
 //////////////////////////////////////////////////
 
 const styles = {
@@ -241,83 +199,97 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: colors.light,
+    fontFamily: "'Segoe UI', sans-serif",
+    position: "relative",
   },
+
+  background: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    background: "linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #00c6ff)",
+    backgroundSize: "400% 400%",
+    animation: "gradient 12s ease infinite",
+    zIndex: -2,
+  },
+
+  overlay: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.4)",
+    zIndex: -1,
+  },
+
   card: {
     width: "350px",
     padding: "30px",
-    borderRadius: "12px",
-    backgroundColor: colors.white,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+    borderRadius: "16px",
+    background: "rgba(255,255,255,0.1)",
+    backdropFilter: "blur(12px)",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.3)",
     textAlign: "center",
-  },
-  title: {
-    marginBottom: "10px",
-    color: colors.primary,
-  },
-  subtitle: {
-    marginBottom: "20px",
-  },
-  input: {
-    width: "100%",
-    padding: "10px",
-    marginBottom: "15px",
-    borderRadius: "8px",
-    border: `1px solid ${colors.gray}`,
-  },
-  button: {
-    width: "100%",
-    padding: "10px",
-    borderRadius: "8px",
-    border: "none",
-    backgroundColor: colors.primary,
     color: "#fff",
-    cursor: "pointer",
-    fontWeight: "bold",
-  },
-  googleBtn: {
-    width: "100%",
-    padding: "10px",
-    marginBottom: "10px",
-    borderRadius: "8px",
-    border: `1px solid ${colors.gray}`,
-    backgroundColor: colors.white,
-    cursor: "pointer",
-  },
-  appleBtn: {
-    width: "100%",
-    padding: "10px",
-    borderRadius: "8px",
-    border: `1px solid ${colors.gray}`,
-    backgroundColor: "#000",
-    color: "#fff",
-    cursor: "pointer",
-  },
-  link: {
-    color: colors.secondary,
-    cursor: "pointer",
-    fontSize: "14px",
   },
 
-  //  Modal styles
-  overlay: {
+  title: { fontSize: "28px" },
+  subtitle: { marginBottom: "20px", opacity: 0.8 },
+
+  input: {
+    width: "95%",
+    padding: "12px",
+    marginBottom: "15px",
+    borderRadius: "10px",
+    border: "none",
+    outline: "none",
+  },
+
+  button: {
+    width: "100%",
+    padding: "12px",
+    borderRadius: "25px",
+    border: "none",
+    background: "#00e676",
+    fontWeight: "bold",
+    cursor: "pointer",
+    transition: "0.3s",
+  },
+
+  buttonHover: {
+    transform: "scale(1.05)",
+    boxShadow: "0 8px 25px rgba(0,230,118,0.6)",
+  },
+
+  divider: { margin: "15px 0" },
+
+  googleBtn: { width: "100%", padding: "10px", marginBottom: "10px", borderRadius: "8px" },
+  appleBtn: { width: "100%", padding: "10px", borderRadius: "8px" },
+
+  link: { color: "#00e676", cursor: "pointer" },
+
+  modalOverlay: {
     position: "fixed",
-    top: 0,
-    left: 0,
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    background: "rgba(0,0,0,0.6)",
   },
+
   modal: {
     position: "absolute",
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    backgroundColor: "#fff",
     padding: "20px",
     borderRadius: "12px",
-    width: "90%",
-    maxWidth: "350px"
+    background: "rgba(255,255,255,0.1)",
+    backdropFilter: "blur(10px)",
+    width: "300px",
+  },
+
+  closeBtn: {
+    marginTop: "10px",
+    width: "100%",
+    padding: "10px",
   }
 };
 

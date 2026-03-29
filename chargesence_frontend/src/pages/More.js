@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from "react";
 import API from "../api/api";
-import { colors } from "../styles/colors";
 
 function More() {
 
   const [user, setUser] = useState({});
   const [activeModal, setActiveModal] = useState(null);
 
-  //////////////////////////////////////////////////
-  // LOAD USER
-  //////////////////////////////////////////////////
   useEffect(() => {
     fetchUser();
   }, []);
@@ -28,17 +24,15 @@ function More() {
   return (
     <div style={styles.container}>
 
-      {/* PROFILE CARD */}
+      {/* PROFILE */}
       <div style={styles.profileCard}>
         <h2>{user.username}</h2>
-        <p>{user.email}</p>
-        <p>{user.phone}</p>
+        <p style={styles.sub}>{user.email}</p>
+        <p style={styles.sub}>{user.phone}</p>
       </div>
 
-      {/* APP TITLE */}
-      <div style={styles.logoBox}>
-        <h1 style={{ color: colors.primary }}>⚡ ChargeSense</h1>
-      </div>
+      {/* LOGO */}
+      <h2 style={styles.logo}>⚡ ChargeSense</h2>
 
       {/* MENU */}
       <div style={styles.menu}>
@@ -51,22 +45,18 @@ function More() {
 
       {/* MODAL */}
       {activeModal && (
-        <div style={styles.modalOverlay} onClick={() => setActiveModal(null)}>
+        <div style={styles.overlay} onClick={() => setActiveModal(null)}>
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
 
             {activeModal === "profile" && (
-              <ProfileModal
-                user={user}
-                setUser={setUser}
-                setActiveModal={setActiveModal}
-              />
+              <ProfileModal user={user} setUser={setUser} setActiveModal={setActiveModal} />
             )}
 
             {activeModal === "vehicles" && <VehicleModal />}
             {activeModal === "settings" && <SettingsModal />}
             {activeModal === "terms" && <TermsModal />}
 
-            <button onClick={() => setActiveModal(null)} style={styles.closeBtn}>
+            <button onClick={() => setActiveModal(null)} style={styles.secondaryBtn}>
               Close
             </button>
 
@@ -88,7 +78,7 @@ function More() {
 }
 
 //////////////////////////////////////////////////////
-// MENU BUTTON COMPONENT
+// MENU BUTTON
 //////////////////////////////////////////////////////
 
 const MenuBtn = ({ label, onClick, danger }) => (
@@ -96,7 +86,7 @@ const MenuBtn = ({ label, onClick, danger }) => (
     onClick={onClick}
     style={{
       ...styles.menuBtn,
-      color: danger ? "red" : "#333"
+      ...(danger ? styles.danger : {})
     }}
   >
     {label}
@@ -104,7 +94,7 @@ const MenuBtn = ({ label, onClick, danger }) => (
 );
 
 //////////////////////////////////////////////////////
-// PROFILE MODAL (FIXED + IMPROVED)
+// PROFILE MODAL
 //////////////////////////////////////////////////////
 
 function ProfileModal({ user, setUser, setActiveModal }) {
@@ -114,50 +104,42 @@ function ProfileModal({ user, setUser, setActiveModal }) {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    if (user) {
-      setEmail(user.email || "");
-      setPhone(user.phone || "");
-    }
+    setEmail(user.email || "");
+    setPhone(user.phone || "");
   }, [user]);
 
   const handleUpdate = () => {
     API.put("user/update/", { email, phone })
       .then(() => {
         alert("Profile updated");
-
-        //  REFRESH USER
         API.get("user/profile/").then(res => {
           setUser(res.data);
-          setActiveModal(null); // close modal
+          setActiveModal(null);
         });
       })
       .catch(() => alert("Update failed"));
   };
 
   const changePassword = () => {
-    if (!password) return alert("Enter new password");
+    if (!password) return alert("Enter password");
 
     API.post("user/change-password/", { password })
       .then(() => alert("Password updated"))
-      .catch(() => alert("Password change failed"));
+      .catch(() => alert("Failed"));
   };
 
   return (
     <>
-      <h3>👤 Profile Details</h3>
+      <h3>👤 Profile</h3>
 
       <input style={styles.input} value={user.username || ""} disabled />
       <input style={styles.input} value={user.role || ""} disabled />
-      <input
-        style={styles.input}
-        value={user.date_joined ? new Date(user.date_joined).toLocaleDateString() : ""}
-        disabled
-      />
+      <input style={styles.input} value={user.date_joined ? new Date(user.date_joined).toLocaleDateString() : ""} disabled />
 
       <input style={styles.input} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
       <input style={styles.input} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone" />
 
-      <button style={styles.button} onClick={handleUpdate}>
+      <button style={styles.primaryBtn} onClick={handleUpdate}>
         Update Profile
       </button>
 
@@ -167,13 +149,13 @@ function ProfileModal({ user, setUser, setActiveModal }) {
 
       <input
         type="password"
-        placeholder="New Password"
         style={styles.input}
+        placeholder="New Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
 
-      <button style={styles.button} onClick={changePassword}>
+      <button style={styles.primaryBtn} onClick={changePassword}>
         Change Password
       </button>
     </>
@@ -187,31 +169,22 @@ function ProfileModal({ user, setUser, setActiveModal }) {
 function VehicleModal() {
 
   const [vehicles, setVehicles] = useState([]);
-
   const [showForm, setShowForm] = useState(false);
 
   const [manufacturer, setManufacturer] = useState("");
   const [model, setModel] = useState("");
   const [connector, setConnector] = useState("");
-
   const [battery, setBattery] = useState("");
   const [efficiency, setEfficiency] = useState("");
 
-  //////////////////////////////////////////////////
-  // LOAD VEHICLES
-  //////////////////////////////////////////////////
   const fetchVehicles = () => {
-    API.get("vehicles/list/")
-      .then((res) => setVehicles(res.data));
+    API.get("vehicles/list/").then(res => setVehicles(res.data));
   };
 
   useEffect(() => {
     fetchVehicles();
   }, []);
 
-  //////////////////////////////////////////////////
-  // ADD VEHICLE
-  //////////////////////////////////////////////////
   const addVehicle = () => {
 
     if (!manufacturer || !model || !connector || !battery || !efficiency) {
@@ -228,108 +201,53 @@ function VehicleModal() {
     })
       .then(() => {
         alert("Vehicle added");
-
-        setManufacturer("");
-        setModel("");
-        setConnector("");
-        setBattery("");
-        setEfficiency("");
-
         setShowForm(false);
         fetchVehicles();
       })
-      .catch(err => {
-        console.log("ERROR:", err.response.data);
-        alert("Add failed");
-      });
+      .catch(() => alert("Error"));
   };
 
-  //////////////////////////////////////////////////
-  // DELETE VEHICLE
-  //////////////////////////////////////////////////
   const deleteVehicle = (id) => {
     API.delete(`vehicles/${id}/`)
-      .then(() => {
-        alert("Deleted");
-        setVehicles(prev => prev.filter(v => v.id !== id));
-      })
+      .then(() => setVehicles(prev => prev.filter(v => v.id !== id)))
       .catch(() => alert("Delete failed"));
   };
 
   return (
     <>
-      <h3>🚗 Vehicle Management</h3>
+      <h3>🚗 Vehicles</h3>
 
-      {/* ADD BUTTON */}
-      <button
-        style={styles.button}
-        onClick={() => setShowForm(!showForm)}
-      >
+      <button style={styles.primaryBtn} onClick={() => setShowForm(!showForm)}>
         {showForm ? "Cancel" : "+ Add Vehicle"}
       </button>
 
-      {/* ADD FORM */}
       {showForm && (
-        <div style={styles.formBox}>
+        <div style={styles.card}>
+          <input style={styles.input} placeholder="Manufacturer" onChange={(e) => setManufacturer(e.target.value)} />
+          <input style={styles.input} placeholder="Model" onChange={(e) => setModel(e.target.value)} />
 
-          <input
-            style={styles.input}
-            placeholder="Manufacturer (e.g. Tesla)"
-            value={manufacturer}
-            onChange={(e) => setManufacturer(e.target.value)}
-          />
-
-          <input
-            style={styles.input}
-            placeholder="Model (e.g. Model 3)"
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-          />
-
-          <select
-            style={styles.input}
-            value={connector}
-            onChange={(e) => setConnector(e.target.value)}
-          >
+          <select style={styles.input} onChange={(e) => setConnector(e.target.value)}>
             <option value="">Select Connector</option>
-
-            <option value="TYPE1">Type 1</option>
             <option value="TYPE2">Type 2</option>
-            <option value="CCS">CCS</option>
             <option value="CCS2">CCS2</option>
             <option value="CHADEMO">CHAdeMO</option>
           </select>
 
-          <input
-            style={styles.input}
-            placeholder="Battery Capacity (kWh)"
-            value={battery}
-            onChange={(e) => setBattery(e.target.value)}
-          />
+          <input style={styles.input} placeholder="Battery (kWh)" onChange={(e) => setBattery(e.target.value)} />
+          <input style={styles.input} placeholder="Efficiency (Wh/km)" onChange={(e) => setEfficiency(e.target.value)} />
 
-          <input
-            style={styles.input}
-            placeholder="Efficiency (Wh/km)"
-            value={efficiency}
-            onChange={(e) => setEfficiency(e.target.value)}
-          />
-
-          <button style={styles.button} onClick={addVehicle}>
+          <button style={styles.primaryBtn} onClick={addVehicle}>
             Save Vehicle
           </button>
-
         </div>
       )}
 
-      {/* LIST */}
-      {vehicles.length === 0 && <p>No vehicles found</p>}
-
       {vehicles.map(v => (
-        <div key={v.id} style={styles.vehicleCard}>
+        <div key={v.id} style={styles.card}>
           <b>{v.manufacturer} {v.model}</b>
-          <p>{v.connector_type}</p>
+          <p style={styles.sub}>{v.connector_type}</p>
 
-          <button style={styles.deleteBtn} onClick={() => deleteVehicle(v.id)}>
+          <button style={styles.dangerBtn} onClick={() => deleteVehicle(v.id)}>
             Delete
           </button>
         </div>
@@ -339,7 +257,7 @@ function VehicleModal() {
 }
 
 //////////////////////////////////////////////////////
-// SETTINGS MODAL
+// SETTINGS
 //////////////////////////////////////////////////////
 
 function SettingsModal() {
@@ -348,12 +266,12 @@ function SettingsModal() {
   const save = () => {
     API.post("settings/", { threshold })
       .then(() => alert("Saved"))
-      .catch(() => alert("Save failed"));
+      .catch(() => alert("Error"));
   };
 
   return (
     <>
-      <h3>⚙️ Battery Threshold</h3>
+      <h3>⚙️ Settings</h3>
 
       <input
         style={styles.input}
@@ -362,7 +280,9 @@ function SettingsModal() {
         onChange={(e) => setThreshold(e.target.value)}
       />
 
-      <button style={styles.button} onClick={save}>Save</button>
+      <button style={styles.primaryBtn} onClick={save}>
+        Save
+      </button>
     </>
   );
 }
@@ -382,29 +302,35 @@ function TermsModal() {
 }
 
 //////////////////////////////////////////////////////
-// STYLES
+// STYLES (PREMIUM)
 //////////////////////////////////////////////////////
 
 const styles = {
   container: {
+    minHeight: "100vh",
     padding: "20px",
-    paddingBottom: "80px",
-    backgroundColor: "#f5f5f5",
-    minHeight: "100vh"
+    paddingBottom: "90px",
+    fontFamily: "'Segoe UI', sans-serif",
+    background: "linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #00c6ff)",
+    color: "#fff"
+  },
+
+  logo: {
+    textAlign: "center",
+    marginBottom: "15px"
   },
 
   profileCard: {
-    backgroundColor: "#fff",
-    padding: "15px",
-    borderRadius: "12px",
-    textAlign: "center",
-    marginBottom: "15px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-  },
-
-  logoBox: {
+    background: "rgba(255,255,255,0.08)",
+    padding: "18px",
+    borderRadius: "18px",
     textAlign: "center",
     marginBottom: "15px"
+  },
+
+  sub: {
+    fontSize: "13px",
+    opacity: 0.8
   },
 
   menu: {
@@ -414,72 +340,84 @@ const styles = {
   },
 
   menuBtn: {
-    padding: "12px",
-    borderRadius: "10px",
+    padding: "14px",
+    borderRadius: "14px",
     border: "none",
-    backgroundColor: "#fff",
-    textAlign: "left",
-    fontSize: "14px",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.1)"
+    background: "rgba(255,255,255,0.08)",
+    color: "#fff",
+    textAlign: "left"
   },
 
-  modalOverlay: {
+  danger: {
+    color: "#ff5252"
+  },
+
+  overlay: {
     position: "fixed",
     top: 0,
     left: 0,
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(0,0,0,0.4)"
+    background: "rgba(0,0,0,0.6)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999
   },
 
   modal: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    backgroundColor: "#fff",
+    background: "rgba(92, 77, 77, 0.7)",
+    backdropFilter: "blur(16px)",
     padding: "20px",
-    borderRadius: "12px",
+    borderRadius: "20px",
     width: "90%",
     maxWidth: "400px"
   },
 
+  card: {
+    background: "rgba(255,255,255,0.08)",
+    padding: "12px",
+    borderRadius: "14px",
+    marginTop: "10px"
+  },
+
   input: {
-    width: "100%",
-    padding: "10px",
-    marginBottom: "10px",
-    borderRadius: "8px",
-    border: "1px solid #ccc"
-  },
-
-  button: {
-    width: "100%",
-    padding: "10px",
-    backgroundColor: colors.primary,
+    width: "95%",
+    padding: "12px",
+    borderRadius: "12px",
+    border: "1px solid rgba(255,255,255,0.2)",
+    background: "rgba(255,255,255,0.05)",
     color: "#fff",
-    border: "none",
-    borderRadius: "8px"
+    marginBottom: "10px"
   },
 
-  deleteBtn: {
-    backgroundColor: "red",
-    color: "#fff",
-    border: "none",
-    padding: "6px",
-    borderRadius: "6px"
-  },
-
-  vehicleCard: {
-    backgroundColor: "#fff",
-    padding: "10px",
-    borderRadius: "8px",
-    marginBottom: "8px"
-  },
-
-  closeBtn: {
-    marginTop: "10px",
+  primaryBtn: {
     width: "100%",
-    padding: "8px"
+    padding: "12px",
+    borderRadius: "25px",
+    border: "none",
+    background: "linear-gradient(135deg, #00e676, #00c6ff)",
+    color: "#000",
+    fontWeight: "bold"
+  },
+
+  secondaryBtn: {
+    width: "100%",
+    padding: "10px",
+    borderRadius: "20px",
+    border: "1px solid #fff",
+    background: "transparent",
+    color: "#fff",
+    marginTop: "10px"
+  },
+
+  dangerBtn: {
+    marginTop: "8px",
+    padding: "8px",
+    borderRadius: "10px",
+    border: "none",
+    background: "#ff5252",
+    color: "#fff"
   },
 
   nav: {
@@ -488,13 +426,14 @@ const styles = {
     width: "100%",
     display: "flex",
     justifyContent: "space-around",
-    backgroundColor: "#fff",
-    padding: "10px",
-    borderTop: "1px solid #ddd"
+    background: "rgba(0,0,0,0.4)",
+    backdropFilter: "blur(15px)",
+    padding: "14px",
+    borderTop: "1px solid rgba(255,255,255,0.1)"
   },
 
   active: {
-    color: colors.primary,
+    color: "#00e676",
     fontWeight: "bold"
   }
 };

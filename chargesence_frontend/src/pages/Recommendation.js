@@ -4,9 +4,8 @@ import {
   GoogleMap,
   LoadScript,
   Marker,
-  DirectionsRenderer  
+  DirectionsRenderer
 } from "@react-google-maps/api";
-import { colors } from "../styles/colors";
 
 function Recommendation() {
 
@@ -21,7 +20,6 @@ function Recommendation() {
   const [center, setCenter] = useState({ lat: 6.9271, lng: 79.8612 });
   const [mapLoaded, setMapLoaded] = useState(false);
   const [directions, setDirections] = useState(null);
-
   const [secondRoute, setSecondRoute] = useState(null);
 
   //////////////////////////////////////////////////
@@ -34,58 +32,44 @@ function Recommendation() {
   }, [best]);
 
   //////////////////////////////////////////////////
-  // ROUTE (VISUAL ONLY)
+  // ROUTES
   //////////////////////////////////////////////////
-useEffect(() => {
-  if (!mapLoaded) return;
-  if (!best?.start || !best?.destination || !best?.lat || !best?.lng) return;
+  useEffect(() => {
+    if (!mapLoaded) return;
+    if (!best?.start || !best?.destination || !best?.lat || !best?.lng) return;
 
-  const service = new window.google.maps.DirectionsService();
+    const service = new window.google.maps.DirectionsService();
 
-  //  Route 1: Start → Charger
-  service.route(
-    {
-      origin: best.start,
-      destination: { lat: best.lat, lng: best.lng },
-      travelMode: window.google.maps.TravelMode.DRIVING,
-    },
-    (result, status) => {
-      if (status === "OK") {
-        setDirections(result);
+    service.route(
+      {
+        origin: best.start,
+        destination: { lat: best.lat, lng: best.lng },
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === "OK") setDirections(result);
       }
-    }
-  );
+    );
 
-  //  Route 2: Charger → Destination
-  service.route(
-    {
-      origin: { lat: best.lat, lng: best.lng },
-      destination: best.destination,
-      travelMode: window.google.maps.TravelMode.DRIVING,
-    },
-    (result, status) => {
-      if (status === "OK") {
-        setSecondRoute(result);
+    service.route(
+      {
+        origin: { lat: best.lat, lng: best.lng },
+        destination: best.destination,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === "OK") setSecondRoute(result);
       }
-    }
-  );
+    );
 
-}, [best, mapLoaded]);
+  }, [best, mapLoaded]);
 
-  //////////////////////////////////////////////////
-  // ETA (FROM BACKEND ONLY)
-  //////////////////////////////////////////////////
-  const getETA = (charger) => {
-    return Math.ceil(charger?.eta || 0);
-  };
+  const getETA = (charger) => Math.ceil(charger?.eta || 0);
 
-  //////////////////////////////////////////////////
-  // NAVIGATION
-  //////////////////////////////////////////////////
   const goToBooking = (charger) => {
     navigate("/bookingpage", {
       state: {
-        charger: charger,
+        charger,
         eta: getETA(charger),
         best,
         others
@@ -110,7 +94,7 @@ useEffect(() => {
   return (
     <div style={styles.container}>
 
-      {/*  MAP */}
+      {/* MAP */}
       <div style={styles.mapContainer}>
         <LoadScript
           googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
@@ -121,40 +105,24 @@ useEffect(() => {
             center={center}
             zoom={13}
           >
-              {directions && <DirectionsRenderer directions={directions} />}
 
-              {secondRoute && (
-                <DirectionsRenderer
-                  directions={secondRoute}
-                  options={{
-                    polylineOptions: {
-                      strokeColor: "#FF0000"
-                    }
-                  }}
-                />
-              )}
-
-              {/*  BEST */}
-              {best?.lat && (
-                <Marker position={{ lat: best.lat, lng: best.lng }} label="⭐" />
-              )}
-
-            {/* FIX 2: correct placement */}
             {directions && <DirectionsRenderer directions={directions} />}
+            {secondRoute && (
+              <DirectionsRenderer
+                directions={secondRoute}
+                options={{
+                  polylineOptions: { strokeColor: "#FF0000" }
+                }}
+              />
+            )}
 
-            {/*  BEST */}
             {best?.lat && (
               <Marker position={{ lat: best.lat, lng: best.lng }} label="⭐" />
             )}
 
-            {/*  OTHERS */}
             {others.map((c, i) =>
               c.lat ? (
-                <Marker
-                  key={i}
-                  position={{ lat: c.lat, lng: c.lng }}
-                  label="⚡"
-                />
+                <Marker key={i} position={{ lat: c.lat, lng: c.lng }} label="⚡" />
               ) : null
             )}
 
@@ -162,13 +130,12 @@ useEffect(() => {
         </LoadScript>
       </div>
 
-      {/*  PANEL */}
+      {/* FLOATING PANEL (MOBILE OPTIMIZED) */}
       <div style={styles.panel}>
 
-        {/*  BEST */}
         {best && (
           <div style={styles.bestCard}>
-            <h3>⭐ Best Charger</h3>
+            <h3>⭐ Recommended Charger</h3>
 
             <h4>{best.station_name}</h4>
             <p style={styles.address}>{best.address}</p>
@@ -187,20 +154,16 @@ useEffect(() => {
               </>
             )}
 
-            <p>📍 {best.distance} km</p>
-            <p>⏱ ETA: {getETA(best)} mins</p>
+            <p style={styles.highlight}>📍 {best.distance} km</p>
+            <p style={styles.highlight}>⏱ {getETA(best)} mins away</p>
 
-            <button
-              style={styles.primaryBtn}
-              onClick={() => goToBooking(best)}
-            >
-              Book Now
+            <button style={styles.primaryBtn} onClick={() => goToBooking(best)}>
+              🚀 Book Now
             </button>
           </div>
         )}
 
-        {/*  OTHERS */}
-        <h4 style={{ marginTop: "10px" }}>Other Chargers</h4>
+        <h4 style={{ marginTop: "10px" }}>Other Options</h4>
 
         {others.map((c, i) => (
           <div key={i} style={styles.card}>
@@ -208,22 +171,8 @@ useEffect(() => {
             <h4>{c.station_name}</h4>
             <p style={styles.address}>{c.address}</p>
 
-            {c.chargers ? (
-              c.chargers.map((ch, i) => (
-                <div key={i} style={styles.chargerRow}>
-                  🔌 {ch.connector} | ⚡ {ch.power} kW | 💰 LKR {ch.cost}
-                </div>
-              ))
-            ) : (
-              <>
-                <p>🔌 {c.connector}</p>
-                <p>⚡ {c.power} kW</p>
-                <p>💰 LKR {c.cost}</p>
-              </>
-            )}
-
-            <p>📍 {c.distance} km</p>
-            <p>⏱ {getETA(c)} mins</p>
+            <p style={styles.sub}>📍 {c.distance} km</p>
+            <p style={styles.sub}>⏱ {getETA(c)} mins</p>
 
             <button
               style={styles.secondaryBtn}
@@ -237,6 +186,7 @@ useEffect(() => {
 
       </div>
 
+      {/* NAV */}
       <div style={styles.nav}>
         <p onClick={() => (window.location.href = "/home")}>Home</p>
         <p onClick={() => (window.location.href = "/booking")}>Booking</p>
@@ -250,81 +200,128 @@ useEffect(() => {
 }
 
 //////////////////////////////////////////////////
-// STYLES
+// STYLES (PREMIUM)
 //////////////////////////////////////////////////
 
 const styles = {
-  container: { display: "flex", height: "100vh" },
-  mapContainer: { flex: 1 },
-  map: { height: "100%", width: "100%" },
+  container: {
+    height: "100vh",
+    position: "relative",
+    fontFamily: "'Segoe UI', sans-serif"
+  },
+
+  mapContainer: {
+    height: "100%",
+    width: "100%"
+  },
+
+  map: {
+    height: "100%",
+    width: "100%"
+  },
+
   panel: {
-    width: "380px",
+    position: "absolute",
+    bottom: "80px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "95%",
+    maxWidth: "420px",
+    maxHeight: "60%",
     overflowY: "auto",
-    backgroundColor: "#fff",
+    background: "rgba(0,0,0,0.6)",
+    backdropFilter: "blur(16px)",
     padding: "15px",
-    borderLeft: "1px solid #eee",
+    borderRadius: "20px",
+    color: "#fff",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.4)",
+    border: "1px solid rgba(255,255,255,0.1)"
   },
+
   bestCard: {
-    border: `2px solid ${colors.primary}`,
-    backgroundColor: "#f0f8ff",
-    padding: "12px",
-    borderRadius: "10px",
+    background: "linear-gradient(135deg, #00e676, #00c6ff)",
+    padding: "15px",
+    borderRadius: "16px",
     marginBottom: "10px",
+    color: "#000"
   },
+
   card: {
-    border: "1px solid #ddd",
-    padding: "10px",
-    borderRadius: "8px",
-    marginBottom: "10px",
+    background: "rgba(255,255,255,0.08)",
+    padding: "12px",
+    borderRadius: "14px",
+    marginBottom: "10px"
   },
-  chargerRow: { fontSize: "13px", marginTop: "4px" },
-  address: { fontSize: "13px", color: "#666" },
+
+  chargerRow: {
+    fontSize: "13px",
+    marginTop: "4px"
+  },
+
+  address: {
+    fontSize: "12px",
+    opacity: 0.8
+  },
+
+  sub: {
+    fontSize: "13px",
+    opacity: 0.8
+  },
+
+  highlight: {
+    fontWeight: "bold",
+    marginTop: "5px"
+  },
+
   primaryBtn: {
     width: "100%",
-    padding: "10px",
+    padding: "12px",
     marginTop: "10px",
-    backgroundColor: colors.primary,
-    color: "#fff",
+    borderRadius: "25px",
     border: "none",
-    borderRadius: "8px",
+    background: "#000",
+    color: "#fff",
+    fontWeight: "bold"
   },
+
   secondaryBtn: {
     width: "100%",
-    padding: "8px",
-    marginTop: "8px",
-    backgroundColor: "#fff",
-    color: colors.primary,
-    border: `1px solid ${colors.primary}`,
-    borderRadius: "6px",
-  },
-  button: {
     padding: "10px",
-    backgroundColor: colors.primary,
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
+    marginTop: "8px",
+    borderRadius: "20px",
+    border: "1px solid #00e676",
+    background: "transparent",
+    color: "#00e676"
   },
-  empty: {
-    height: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+
   nav: {
     position: "fixed",
     bottom: 0,
     width: "100%",
     display: "flex",
     justifyContent: "space-around",
-    backgroundColor: colors.white,
-    padding: "10px",
+    background: "rgba(0,0,0,0.4)",
+    backdropFilter: "blur(15px)",
+    padding: "14px",
+    borderTop: "1px solid rgba(255,255,255,0.1)"
   },
-  active: {
-    color: colors.primary,
-    fontWeight: "bold",
+
+  button: {
+    padding: "10px",
+    borderRadius: "20px",
+    border: "none",
+    background: "#00e676",
+    color: "#000",
+    fontWeight: "bold"
+  },
+
+  empty: {
+    height: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center"
   }
-  
 };
 
 export default Recommendation;

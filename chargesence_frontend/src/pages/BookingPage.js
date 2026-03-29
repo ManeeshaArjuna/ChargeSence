@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import API from "../api/api";
-import { colors } from "../styles/colors";
 
 function BookingPage() {
 
@@ -22,7 +21,6 @@ function BookingPage() {
     best: state?.best,
     others: state?.others
   };
-
 
   //////////////////////////////////////////////////
   // LOAD VEHICLES
@@ -97,83 +95,94 @@ function BookingPage() {
   return (
     <div style={styles.container}>
 
-      <h2>⚡ Booking</h2>
+      <h2 style={styles.title}>⚡ Confirm Booking</h2>
 
-      <h3>{charger.station_name}</h3>
-      <p>{charger.address}</p>
+      {/* CHARGER CARD */}
+      <div style={styles.card}>
+        <h3>{charger.station_name}</h3>
+        <p style={styles.sub}>{charger.address}</p>
+        <p style={styles.highlight}>ETA: {eta} mins</p>
+      </div>
 
       {/* CONNECTOR */}
-      <label>Connector</label>
-      <select
-        value={connector}
-        onChange={(e) => setConnector(e.target.value)}
-        style={styles.input}
-      >
-        <option value="">Select</option>
-        {charger.chargers?.map((c, i) => (
-          <option key={i} value={c.connector}>
-            {c.connector} ({c.power}kW)
-          </option>
-        ))}
-      </select>
+      <div style={styles.card}>
+        <label>Connector</label>
+        <select
+          value={connector}
+          onChange={(e) => setConnector(e.target.value)}
+          style={styles.input}
+        >
+          <option value="">Select</option>
+          {charger.chargers?.map((c, i) => (
+            <option key={i} value={c.connector}>
+              {c.connector} ({c.power}kW)
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* SLOTS */}
-      <label>Time Slot</label>
-      <div style={styles.slotContainer}>
-        {slots.length === 0 && <p>No available slots</p>}
+      <div style={styles.card}>
+        <label>Time Slot</label>
 
-        {slots.map((s, i) => (
-          <button
-            key={i}
-            onClick={() => setSelectedSlot(s)}
-            style={{
-              ...styles.slotBtn,
-              backgroundColor:
-                selectedSlot === s ? colors.primary : "#ddd",
-              color: selectedSlot === s ? "#fff" : "#000",
-            }}
-          >
-            {new Date(s.start).toLocaleTimeString()}
-          </button>
-        ))}
+        <div style={styles.slotContainer}>
+          {slots.length === 0 && <p>No available slots</p>}
+
+          {slots.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => setSelectedSlot(s)}
+              style={{
+                ...styles.slotBtn,
+                ...(selectedSlot === s ? styles.slotActive : {})
+              }}
+            >
+              {new Date(s.start).toLocaleTimeString()}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* DURATION */}
-      <label>Duration</label>
-      <select
-        value={duration}
-        onChange={(e) => setDuration(parseInt(e.target.value))}
-        style={styles.input}
-      >
-        {[10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60].map(d => (
-          <option key={d} value={d}>{d} min</option>
-        ))}
-      </select>
+      <div style={styles.card}>
+        <label>Duration</label>
+        <select
+          value={duration}
+          onChange={(e) => setDuration(parseInt(e.target.value))}
+          style={styles.input}
+        >
+          {[10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60].map(d => (
+            <option key={d} value={d}>{d} min</option>
+          ))}
+        </select>
+      </div>
 
       {/* AMOUNT */}
-      <h4>💰 Rs {amount}</h4>
+      <div style={styles.amountCard}>
+        <h3>Total</h3>
+        <h2>Rs {amount}</h2>
+      </div>
 
       {/* ACTION BUTTONS */}
       <button style={styles.primaryBtn} onClick={confirmBooking}>
-        Confirm & Pay
+        🚀 Confirm & Pay
       </button>
 
-      {/*  BACK BUTTON */}
       <button
         style={styles.secondaryBtn}
         onClick={() =>
-        navigate("/recommendation", {
+          navigate("/recommendation", {
             state: recommendationData
-        })
+          })
         }
       >
         ← Back
       </button>
 
-      {/*  NAVIGATION BAR */}
+      {/* NAV */}
       <div style={styles.nav}>
         <p onClick={() => (window.location.href = "/dashboard")}>Home</p>
-        <p style={styles.active}>Booking Page</p>
+        <p style={styles.active}>Booking</p>
         <p onClick={() => (window.location.href = "/activity")}>Activity</p>
         <p onClick={() => (window.location.href = "/wallet")}>Wallet</p>
         <p onClick={() => (window.location.href = "/more")}>More</p>
@@ -184,71 +193,118 @@ function BookingPage() {
 }
 
 //////////////////////////////////////////////////
-// STYLES
+// STYLES (PREMIUM)
 //////////////////////////////////////////////////
 
 const styles = {
   container: {
-    padding: "20px",
-    paddingBottom: "80px",
     minHeight: "100vh",
-    backgroundColor: "#f5f5f5"
+    padding: "20px",
+    paddingBottom: "90px",
+    fontFamily: "'Segoe UI', sans-serif",
+    background: "linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #00c6ff)",
+    color: "#fff"
+  },
+
+  title: {
+    textAlign: "center",
+    marginBottom: "15px"
+  },
+
+  card: {
+    background: "rgba(255,255,255,0.08)",
+    backdropFilter: "blur(14px)",
+    padding: "16px",
+    borderRadius: "16px",
+    marginBottom: "12px",
+    border: "1px solid rgba(255,255,255,0.1)"
+  },
+
+  sub: {
+    fontSize: "13px",
+    opacity: 0.8
+  },
+
+  highlight: {
+    marginTop: "5px",
+    fontWeight: "bold",
+    color: "#00e676"
   },
 
   input: {
     width: "100%",
-    padding: "10px",
-    marginBottom: "10px",
-    borderRadius: "8px",
-    border: "1px solid #ccc"
+    padding: "14px",
+    borderRadius: "14px",
+    border: "1px solid rgba(255,255,255,0.2)",
+    background: "rgba(255,255,255,0.05)",
+    color: "#fff",
+    marginTop: "8px"
   },
 
   slotContainer: {
-    marginBottom: "10px"
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    marginTop: "10px"
   },
 
   slotBtn: {
-    margin: "5px",
-    padding: "8px",
+    padding: "10px",
+    borderRadius: "20px",
     border: "none",
-    borderRadius: "6px",
-    cursor: "pointer"
+    background: "rgba(255,255,255,0.2)",
+    color: "#fff"
+  },
+
+  slotActive: {
+    background: "linear-gradient(135deg, #00e676, #00c6ff)",
+    color: "#000",
+    fontWeight: "bold"
+  },
+
+  amountCard: {
+    background: "linear-gradient(135deg, #00e676, #00c6ff)",
+    padding: "18px",
+    borderRadius: "16px",
+    textAlign: "center",
+    marginBottom: "15px",
+    color: "#000"
   },
 
   primaryBtn: {
     width: "100%",
-    padding: "12px",
-    backgroundColor: colors.primary,
-    color: "#fff",
+    padding: "14px",
+    borderRadius: "30px",
     border: "none",
-    borderRadius: "8px",
-    marginTop: "10px"
+    background: "linear-gradient(135deg, #00e676, #00c6ff)",
+    color: "#000",
+    fontWeight: "bold"
   },
 
   secondaryBtn: {
     width: "100%",
-    padding: "10px",
-    backgroundColor: "#fff",
-    color: colors.primary,
-    border: `1px solid ${colors.primary}`,
-    borderRadius: "8px",
+    padding: "12px",
+    borderRadius: "25px",
+    border: "1px solid #fff",
+    background: "transparent",
+    color: "#fff",
     marginTop: "10px"
   },
 
   nav: {
     position: "fixed",
     bottom: 0,
-    left: 0,
     width: "100%",
     display: "flex",
     justifyContent: "space-around",
-    backgroundColor: "#fff",
-    padding: "10px",
-    borderTop: "1px solid #ddd"
+    background: "rgba(0,0,0,0.4)",
+    backdropFilter: "blur(15px)",
+    padding: "14px",
+    borderTop: "1px solid rgba(255,255,255,0.1)"
   },
 
   active: {
-    color: colors.primary,
+    color: "#00e676",
     fontWeight: "bold"
   }
 };

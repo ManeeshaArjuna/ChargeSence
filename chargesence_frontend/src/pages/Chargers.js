@@ -1,22 +1,18 @@
 import React, { useEffect, useState } from "react";
 import API from "../api/api";
-import { colors } from "../styles/colors";
 
 function Chargers() {
   const [stations, setStations] = useState([]);
 
   useEffect(() => {
     API.get("chargers/")
-      .then((res) => {
-        setStations(res.data);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+      .then((res) => setStations(res.data))
+      .catch((err) => console.error(err));
   }, []);
 
   return (
     <div style={styles.container}>
+
       <h2 style={styles.title}>⚡ Charging Stations</h2>
 
       {stations.length > 0 ? (
@@ -25,13 +21,11 @@ function Chargers() {
 
             {/* HEADER */}
             <div style={styles.header}>
-              <div>
-                <h3 style={styles.stationName}>{s.station_name}</h3>
-                <p style={styles.address}>{s.address}</p>
-              </div>
+              <h3 style={styles.stationName}>{s.station_name}</h3>
+              <p style={styles.address}>{s.address}</p>
             </div>
 
-            {/* ACTION ICONS */}
+            {/* ACTIONS */}
             <div style={styles.iconRow}>
               {s.phone && (
                 <a href={`tel:${s.phone}`} style={styles.iconBtn}>
@@ -51,32 +45,31 @@ function Chargers() {
               )}
             </div>
 
-            {/* CHARGERS */}
-            <div style={styles.sectionTitle}>Available Connectors</div>
+            {/* CONNECTORS */}
+            <p style={styles.sectionTitle}>Available Connectors</p>
 
             {s.chargers.map((c, i) => (
               <div key={i} style={styles.chargerRow}>
 
-                {/* LEFT */}
                 <div style={styles.left}>
                   <span style={styles.connectorIcon}>
                     {getConnectorIcon(c.connector)}
                   </span>
-                  <span style={styles.connectorType}>{c.connector}</span>
 
-                  {/* 🔥 STATUS */}
-                  <span
-                    style={{
-                      ...styles.status,
-                      backgroundColor: c.available ? "#fff3e0" : "#e6f9ed",
-                      color: c.available ? "#ef6c00" : "#2e7d32",
-                    }}
-                  >
-                    {c.available ? "Maintenance" : "Available"}
-                  </span>
+                  <div>
+                    <div style={styles.connectorType}>{c.connector}</div>
+
+                    <span
+                      style={{
+                        ...styles.status,
+                        ...(c.available ? styles.available : styles.maintenance)
+                      }}
+                    >
+                      {c.available ? "Available" : "Maintenance"}
+                    </span>
+                  </div>
                 </div>
 
-                {/* RIGHT */}
                 <div style={styles.right}>
                   <span style={styles.power}>{c.power} kW</span>
                   <span style={styles.price}>LKR {c.cost}</span>
@@ -88,7 +81,7 @@ function Chargers() {
           </div>
         ))
       ) : (
-        <p style={{ textAlign: "center" }}>No stations available</p>
+        <p style={styles.empty}>No stations available</p>
       )}
 
       {/* NAV */}
@@ -99,6 +92,7 @@ function Chargers() {
         <p onClick={() => (window.location.href = "/wallet")}>Wallet</p>
         <p onClick={() => (window.location.href = "/more")}>More</p>
       </div>
+
     </div>
   );
 }
@@ -114,67 +108,69 @@ function getConnectorIcon(type) {
 }
 
 //////////////////////////////////////////////////
-//  STYLES
+// STYLES (PREMIUM)
 //////////////////////////////////////////////////
 
 const styles = {
   container: {
-    padding: "20px",
-    backgroundColor: colors.light,
     minHeight: "100vh",
+    padding: "20px",
     paddingBottom: "90px",
+    fontFamily: "'Segoe UI', sans-serif",
+    background: "linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #00c6ff)",
+    color: "#fff"
   },
 
   title: {
-    marginBottom: "20px",
-    color: colors.primary,
-    fontSize: "22px",
-    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: "20px"
   },
 
   card: {
-    backgroundColor: colors.white,
+    background: "rgba(255,255,255,0.08)",
+    backdropFilter: "blur(14px)",
     padding: "18px",
-    borderRadius: "14px",
-    marginBottom: "18px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+    borderRadius: "18px",
+    marginBottom: "15px",
+    border: "1px solid rgba(255,255,255,0.1)",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.25)"
   },
 
   header: {
-    marginBottom: "10px",
+    marginBottom: "10px"
   },
 
   stationName: {
     margin: 0,
-    fontSize: "18px",
+    fontSize: "18px"
   },
 
   address: {
     fontSize: "13px",
-    color: "#777",
+    opacity: 0.8
   },
 
   iconRow: {
     display: "flex",
     gap: "10px",
-    margin: "10px 0",
+    margin: "10px 0"
   },
 
   iconBtn: {
-    backgroundColor: "#f5f5f5",
-    padding: "6px 10px",
-    borderRadius: "8px",
-    fontSize: "13px",
+    padding: "8px 12px",
+    borderRadius: "20px",
+    background: "rgba(255,255,255,0.15)",
+    color: "#fff",
     textDecoration: "none",
-    color: "#333",
+    fontSize: "12px"
   },
 
   sectionTitle: {
-    fontSize: "14px",
+    fontSize: "13px",
     fontWeight: "bold",
     marginTop: "10px",
     marginBottom: "5px",
-    color: "#555",
+    opacity: 0.8
   },
 
   chargerRow: {
@@ -182,57 +178,73 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     padding: "10px 0",
-    borderTop: "1px solid #eee",
+    borderTop: "1px solid rgba(255,255,255,0.1)"
   },
 
   left: {
     display: "flex",
     alignItems: "center",
-    gap: "6px",
+    gap: "10px"
   },
 
   right: {
     display: "flex",
     gap: "12px",
-    fontSize: "13px",
+    fontSize: "13px"
   },
 
   connectorIcon: {
-    fontSize: "16px",
+    fontSize: "18px"
   },
 
   connectorType: {
-    fontWeight: "500",
+    fontWeight: "bold"
   },
 
   power: {
-    color: "#444",
+    opacity: 0.8
   },
 
   price: {
-    color: colors.primary,
-    fontWeight: "bold",
+    color: "#00e676",
+    fontWeight: "bold"
   },
 
   status: {
-    marginLeft: "8px",
-    padding: "2px 8px",
-    borderRadius: "8px",
+    marginTop: "2px",
+    padding: "3px 8px",
+    borderRadius: "10px",
     fontSize: "11px",
     fontWeight: "bold",
+    display: "inline-block"
+  },
+
+  available: {
+    background: "#00e676",
+    color: "#000"
+  },
+
+  maintenance: {
+    background: "#ff5252",
+    color: "#fff"
+  },
+
+  empty: {
+    textAlign: "center",
+    opacity: 0.6
   },
 
   nav: {
     position: "fixed",
     bottom: 0,
-    left: 0,
     width: "100%",
     display: "flex",
     justifyContent: "space-around",
-    backgroundColor: colors.white,
-    padding: "12px",
-    borderTop: `1px solid ${colors.gray}`,
-  },
+    background: "rgba(0,0,0,0.4)",
+    backdropFilter: "blur(15px)",
+    padding: "14px",
+    borderTop: "1px solid rgba(255,255,255,0.1)"
+  }
 };
 
 export default Chargers;

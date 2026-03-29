@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 function LandingPage() {
 
@@ -6,51 +6,79 @@ function LandingPage() {
     window.location.href = "/login";
   };
 
+  const [hoverBtn, setHoverBtn] = useState(false);
+  const [hoverCard, setHoverCard] = useState(null);
+
   return (
     <div style={styles.container}>
 
-      {/* BACKGROUND ANIMATION */}
+      {/* BACKGROUND */}
       <div style={styles.background}></div>
+      <div style={styles.overlay}></div>
 
-      {/* CONTENT */}
-      <div style={styles.content}>
+      {/* SCROLL WRAPPER */}
+      <div style={styles.wrapper}>
 
-        {/* LOGO */}
-        <h1 style={styles.logo}>⚡ ChargeSense</h1>
+        {/* CONTENT */}
+        <div style={styles.content}>
 
-        {/* TAGLINE */}
-        <h2 style={styles.tagline}>
-          Smart EV Charging Made Simple
-        </h2>
+          <h1 style={styles.logo}>⚡ ChargeSense</h1>
 
-        <p style={styles.description}>
-          Discover nearby charging stations, plan routes, book slots, 
-          and manage payments — all in one intelligent platform.
-        </p>
+          <h2 style={styles.tagline}>
+            Smart EV Charging Made Simple
+          </h2>
 
-        {/* BUTTON */}
-        <button style={styles.button} onClick={goToLogin}>
-          🚀 Start Charging
-        </button>
+          <p style={styles.description}>
+            Discover nearby charging stations, plan routes, book slots,
+            and manage payments.
+            All in one intelligent platform.
+          </p>
 
-      </div>
+          <button
+            style={{
+              ...styles.button,
+              ...(hoverBtn ? styles.buttonHover : {})
+            }}
+            onMouseEnter={() => setHoverBtn(true)}
+            onMouseLeave={() => setHoverBtn(false)}
+            onClick={goToLogin}
+          >
+            🚀 Start Charging
+          </button>
 
-      {/* FEATURES SECTION */}
-      <div style={styles.features}>
-
-        <div style={styles.card}>
-          <h3>📍 Smart Navigation</h3>
-          <p>Find the best charging stations with real-time routes</p>
         </div>
 
-        <div style={styles.card}>
-          <h3>⚡ Fast Booking</h3>
-          <p>Reserve charging slots instantly with ease</p>
-        </div>
+        {/* FEATURES */}
+        <div style={styles.features}>
 
-        <div style={styles.card}>
-          <h3>💳 Wallet System</h3>
-          <p>Secure payments and reward-based charging</p>
+          {[
+            {
+              title: "📍 Smart Navigation",
+              text: "Find the best charging stations with real-time routes"
+            },
+            {
+              title: "⚡ Fast Booking",
+              text: "Reserve charging slots instantly with ease"
+            },
+            {
+              title: "💳 Wallet System",
+              text: "Secure payments and reward-based charging"
+            }
+          ].map((item, index) => (
+            <div
+              key={index}
+              style={{
+                ...styles.card,
+                ...(hoverCard === index ? styles.cardHover : {})
+              }}
+              onMouseEnter={() => setHoverCard(index)}
+              onMouseLeave={() => setHoverCard(null)}
+            >
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </div>
+          ))}
+
         </div>
 
       </div>
@@ -60,16 +88,24 @@ function LandingPage() {
 }
 
 //////////////////////////////////////////////////
-// 🎨 STYLES
+//  STYLES (MOBILE FIXED)
 //////////////////////////////////////////////////
 
 const styles = {
   container: {
     height: "100vh",
-    overflow: "hidden",
-    fontFamily: "Arial, sans-serif",
+    fontFamily: "'Segoe UI', sans-serif",
     color: "#fff",
     position: "relative",
+  },
+
+  wrapper: {
+    height: "100vh",
+    overflowY: "auto", 
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    paddingBottom: "40px",
   },
 
   background: {
@@ -78,62 +114,78 @@ const styles = {
     height: "100%",
     background: "linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #00c6ff)",
     backgroundSize: "400% 400%",
-    animation: "gradient 10s ease infinite",
+    animation: "gradient 12s ease infinite",
+    zIndex: -2,
+  },
+
+  overlay: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.4)",
     zIndex: -1,
   },
 
   content: {
     textAlign: "center",
-    paddingTop: "120px",
-    animation: "fadeIn 2s ease",
+    paddingTop: "100px",
+    paddingLeft: "20px",
+    paddingRight: "20px",
   },
 
   logo: {
-    fontSize: "48px",
+    fontSize: "42px", 
     fontWeight: "bold",
+    animation: "float 3s ease-in-out infinite",
   },
 
   tagline: {
-    fontSize: "24px",
+    fontSize: "22px",
     marginTop: "10px",
   },
 
   description: {
-    marginTop: "10px",
+    marginTop: "15px",
     fontSize: "14px",
     maxWidth: "400px",
-    marginLeft: "auto",
-    marginRight: "auto",
+    lineHeight: "1.6",
   },
 
   button: {
     marginTop: "25px",
     padding: "12px 25px",
-    fontSize: "16px",
     borderRadius: "30px",
-    border: "none",
     background: "#00e676",
-    color: "#000",
-    cursor: "pointer",
-    transition: "0.3s",
+    border: "none",
+    fontWeight: "bold",
+  },
+
+  buttonHover: {
+    transform: "scale(1.05)",
+    boxShadow: "0 8px 25px rgba(0, 230, 118, 0.6)",
   },
 
   features: {
-    position: "absolute",
-    bottom: "20px",
-    width: "100%",
+    marginTop: "40px",
     display: "flex",
-    justifyContent: "space-around",
+    flexDirection: "column", 
+    gap: "15px",
+    width: "100%",
+    alignItems: "center",
     padding: "0 20px",
   },
 
   card: {
-    background: "rgba(255,255,255,0.1)",
+    width: "100%", 
+    maxWidth: "320px",
+    background: "rgba(255,255,255,0.08)",
     padding: "15px",
-    borderRadius: "10px",
-    width: "30%",
-    backdropFilter: "blur(10px)",
+    borderRadius: "12px",
     textAlign: "center",
+  },
+
+  cardHover: {
+    transform: "translateY(-6px)",
   },
 };
 

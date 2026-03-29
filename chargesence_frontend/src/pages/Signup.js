@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import API from "../api/api";
-import { colors } from "../styles/colors";
 
 function Signup() {
+
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -14,11 +14,14 @@ function Signup() {
     confirmPassword: "",
   });
 
+  const [hoverBtn, setHoverBtn] = useState(false);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSignup = async () => {
+
     if (form.password !== form.confirmPassword) {
       alert("Passwords do not match");
       return;
@@ -45,164 +48,183 @@ function Signup() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>⚡ ChargeSence</h1>
-        <h3 style={styles.subtitle}>SIGN UP</h3>
 
-        {/* PERSONAL SECTION */}
-        <p style={styles.section}>Personal</p>
+      {/* BACKGROUND */}
+      <div style={styles.background}></div>
+      <div style={styles.overlay}></div>
 
-        <input
-          name="first_name"
-          placeholder="First Name"
-          style={styles.input}
-          onChange={handleChange}
-        />
+      {/* SCROLL WRAPPER */}
+      <div style={styles.wrapper}>
 
-        <input
-          name="last_name"
-          placeholder="Last Name"
-          style={styles.input}
-          onChange={handleChange}
-        />
+        <div style={styles.card}>
 
-        <input
-          name="email"
-          placeholder="Email"
-          type="email"
-          style={styles.input}
-          onChange={handleChange}
-        />
+          <h1 style={styles.title}>⚡ ChargeSense</h1>
+          <h3 style={styles.subtitle}>Create Your Account</h3>
 
-        {/* Phone with country code */}
-        <div style={styles.phoneRow}>
-          <select
-            name="country_code"
-            style={styles.select}
-            onChange={handleChange}
+          {/* PERSONAL */}
+          <p style={styles.section}>Personal Information</p>
+
+          <input name="first_name" placeholder="First Name" style={styles.input} onChange={handleChange} />
+          <input name="last_name" placeholder="Last Name" style={styles.input} onChange={handleChange} />
+          <input name="email" placeholder="Email" type="email" style={styles.input} onChange={handleChange} />
+
+          {/* PHONE */}
+          <div style={styles.phoneRow}>
+            <select name="country_code" style={styles.select} onChange={handleChange}>
+              <option value="+94">🇱🇰 +94</option>
+              <option value="+91">🇮🇳 +91</option>
+              <option value="+1">🇺🇸 +1</option>
+            </select>
+
+            <input name="phone" placeholder="Phone Number" style={styles.phoneInput} onChange={handleChange} />
+          </div>
+
+          {/* SECURITY */}
+          <p style={styles.section}>Security</p>
+
+          <input name="username" placeholder="Username" style={styles.input} onChange={handleChange} />
+          <input name="password" type="password" placeholder="Password" style={styles.input} onChange={handleChange} />
+          <input name="confirmPassword" type="password" placeholder="Confirm Password" style={styles.input} onChange={handleChange} />
+
+          <button
+            style={{
+              ...styles.button,
+              ...(hoverBtn ? styles.buttonHover : {})
+            }}
+            onMouseEnter={() => setHoverBtn(true)}
+            onMouseLeave={() => setHoverBtn(false)}
+            onClick={handleSignup}
           >
-            <option value="+94">🇱🇰 +94</option>
-            <option value="+91">🇮🇳 +91</option>
-            <option value="+1">🇺🇸 +1</option>
-          </select>
+            Create Account
+          </button>
 
-          <input
-            name="phone"
-            placeholder="Phone Number"
-            style={styles.phoneInput}
-            onChange={handleChange}
-          />
+          <p style={{ marginTop: "15px", textAlign: "center" }}>
+            Already have an account?{" "}
+            <span style={styles.link} onClick={() => (window.location.href = "/login")}>
+              LOGIN
+            </span>
+          </p>
+
         </div>
 
-        {/* SECURITY SECTION */}
-        <p style={styles.section}>Security</p>
-
-        <input
-          name="username"
-          placeholder="Username"
-          style={styles.input}
-          onChange={handleChange}
-        />
-
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          style={styles.input}
-          onChange={handleChange}
-        />
-
-        <input
-          name="confirmPassword"
-          type="password"
-          placeholder="Confirm Password"
-          style={styles.input}
-          onChange={handleChange}
-        />
-
-        <button style={styles.button} onClick={handleSignup}>
-          Create Account
-        </button>
-
-        <p style={{ marginTop: "15px" }}>
-          Already have an account?{" "}
-          <span
-            style={styles.link}
-            onClick={() => (window.location.href = "/login")}
-          >
-            LOGIN
-          </span>
-        </p>
       </div>
     </div>
   );
 }
 
+//////////////////////////////////////////////////
+//  STYLES (MATCH LOGIN + LANDING)
+//////////////////////////////////////////////////
+
 const styles = {
   container: {
     height: "100vh",
+    position: "relative",
+    fontFamily: "'Segoe UI', sans-serif",
+  },
+
+  wrapper: {
+    height: "100vh",
+    overflowY: "auto",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: colors.light,
+    padding: "20px",
   },
+
+  background: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    background: "linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #00c6ff)",
+    backgroundSize: "400% 400%",
+    animation: "gradient 12s ease infinite",
+    zIndex: -2,
+  },
+
+  overlay: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.4)",
+    zIndex: -1,
+  },
+
   card: {
-    width: "380px",
-    padding: "30px",
-    borderRadius: "12px",
-    backgroundColor: colors.white,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+    width: "100%",
+    maxWidth: "400px",
+    padding: "25px",
+    borderRadius: "16px",
+    background: "rgba(255,255,255,0.1)",
+    backdropFilter: "blur(12px)",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.3)",
+    color: "#fff",
   },
+
   title: {
     textAlign: "center",
-    color: colors.primary,
-    marginBottom: "5px",
+    fontSize: "26px",
   },
+
   subtitle: {
     textAlign: "center",
     marginBottom: "20px",
+    opacity: 0.8,
   },
+
   section: {
-    fontWeight: "bold",
-    marginTop: "10px",
+    marginTop: "15px",
     marginBottom: "10px",
-    color: colors.dark,
+    fontWeight: "bold",
+    fontSize: "14px",
   },
+
   input: {
-    width: "100%",
-    padding: "10px",
+    width: "95%",
+    padding: "12px",
     marginBottom: "12px",
-    borderRadius: "8px",
-    border: `1px solid ${colors.gray}`,
+    borderRadius: "10px",
+    border: "none",
+    outline: "none",
   },
+
   phoneRow: {
     display: "flex",
     gap: "10px",
     marginBottom: "12px",
   },
+
   select: {
-    padding: "10px",
-    borderRadius: "8px",
-    border: `1px solid ${colors.gray}`,
+    padding: "12px",
+    borderRadius: "10px",
+    border: "none",
   },
+
   phoneInput: {
     flex: 1,
-    padding: "10px",
-    borderRadius: "8px",
-    border: `1px solid ${colors.gray}`,
+    padding: "12px",
+    borderRadius: "10px",
+    border: "none",
   },
+
   button: {
     width: "100%",
     padding: "12px",
-    borderRadius: "8px",
+    borderRadius: "25px",
     border: "none",
-    backgroundColor: colors.primary,
-    color: "#fff",
+    background: "#00e676",
     fontWeight: "bold",
     cursor: "pointer",
+    transition: "0.3s",
   },
+
+  buttonHover: {
+    transform: "scale(1.05)",
+    boxShadow: "0 8px 25px rgba(0,230,118,0.6)",
+  },
+
   link: {
-    color: colors.secondary,
+    color: "#00e676",
     cursor: "pointer",
   },
 };

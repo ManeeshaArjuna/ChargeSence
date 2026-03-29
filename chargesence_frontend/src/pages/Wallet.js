@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import API from "../api/api";
-import { colors } from "../styles/colors";
 
 function Wallet() {
   const [data, setData] = useState({
@@ -207,7 +206,7 @@ function Wallet() {
 
             <hr />
 
-            {/* 💳 VIRTUAL CARD */}
+            {/* VIRTUAL CARD */}
             <div style={styles.cardPreview}>
               <div style={styles.cardTop}>
                 {getCardType(newCard.number)}
@@ -298,38 +297,173 @@ function getCardType(number) {
 //////////////////////////////////////////////////
 
 const styles = {
-  container: { padding: "20px", backgroundColor: colors.light, minHeight: "100vh" },
-  logo: { color: colors.primary },
-  switch: { display: "flex", gap: "10px", margin: "20px 0" },
-  btn: { flex: 1, padding: "10px" },
-  activeBtn: { flex: 1, padding: "10px", backgroundColor: colors.primary, color: "#fff" },
-  card: { backgroundColor: colors.primary, color: "#fff", padding: "20px", borderRadius: "12px" },
-  input: { width: "100%", padding: "10px", marginBottom: "10px" },
-  button: { width: "100%", padding: "10px", backgroundColor: colors.primary, color: "#fff" },
-  buttonSecondary: { width: "100%", padding: "10px", marginBottom: "10px" },
-  tx: { backgroundColor: "#fff", padding: "10px", marginBottom: "10px", borderRadius: "8px" },
-  date: { fontSize: "12px", color: "#888" },
-  nav: { position: "fixed", bottom: 0, width: "100%", display: "flex", justifyContent: "space-around", backgroundColor: "#fff", padding: "10px" },
-  active: { color: colors.primary, fontWeight: "bold" },
+  container: {
+    minHeight: "100vh",
+    padding: "20px",
+    paddingBottom: "80px",
+    fontFamily: "'Segoe UI', sans-serif",
+    background: "linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #00c6ff)",
+    color: "#fff"
+  },
 
-  modalOverlay: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center" },
-  modal: { backgroundColor: "#fff", padding: "20px", borderRadius: "12px", width: "300px" },
+  logo: {
+    textAlign: "center",
+    fontSize: "22px",
+    marginBottom: "10px"
+  },
 
-  cardItem: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px", border: "1px solid #ddd", borderRadius: "8px", marginBottom: "10px" },
+  switch: {
+    display: "flex",
+    background: "rgba(255,255,255,0.1)",
+    borderRadius: "20px",
+    padding: "5px",
+    margin: "20px 0"
+  },
 
-  deleteBtn: { background: "#ff4d4f", color: "#fff", border: "none", borderRadius: "6px", padding: "4px 8px", cursor: "pointer" },
+  btn: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "20px",
+    background: "transparent",
+    color: "#fff"
+  },
+
+  activeBtn: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "20px",
+    background: "#00e676",
+    color: "#000",
+    fontWeight: "bold"
+  },
+
+  card: {
+    background: "linear-gradient(135deg, #00e676, #00c6ff)",
+    padding: "20px",
+    borderRadius: "16px",
+    marginBottom: "20px",
+    boxShadow: "0 6px 20px rgba(0,0,0,0.3)"
+  },
+
+  input: {
+    width: "100%",
+    padding: "12px",
+    borderRadius: "12px",
+    border: "none",
+    marginBottom: "10px"
+  },
+
+  button: {
+    width: "100%",
+    padding: "12px",
+    borderRadius: "25px",
+    background: "#00e676",
+    border: "none",
+    fontWeight: "bold",
+    color: "#000"
+  },
+
+  buttonSecondary: {
+    width: "100%",
+    padding: "12px",
+    borderRadius: "25px",
+    border: "1px solid #fff",
+    background: "transparent",
+    color: "#fff",
+    marginBottom: "10px"
+  },
+
+  tx: {
+    background: "rgba(255,255,255,0.1)",
+    padding: "12px",
+    borderRadius: "12px",
+    marginBottom: "10px"
+  },
+
+  date: {
+    fontSize: "12px",
+    opacity: 0.7
+  },
+
+  nav: {
+    position: "fixed",
+    bottom: 0,
+    width: "100%",
+    display: "flex",
+    justifyContent: "space-around",
+    background: "rgba(255,255,255,0.1)",
+    backdropFilter: "blur(10px)",
+    padding: "12px"
+  },
+
+  active: {
+    color: "#00e676",
+    fontWeight: "bold"
+  },
+
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.6)",
+    zIndex: 9999,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center"
+  },
+
+  modal: {
+    background: "rgba(255,255,255,0.1)",
+    backdropFilter: "blur(12px)",
+    padding: "40px",
+    borderRadius: "16px",
+    width: "90%",
+    maxWidth: "350px",
+    color: "#fff"
+  },
+
+  cardItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "10px",
+    borderRadius: "10px",
+    background: "rgba(255,255,255,0.1)",
+    marginBottom: "10px"
+  },
+
+  deleteBtn: {
+    background: "#ff5252",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    padding: "4px 8px"
+  },
 
   cardPreview: {
-    background: "linear-gradient(135deg, #4CAF50, #2E7D32)",
-    color: "#fff",
+    background: "linear-gradient(135deg, #00e676, #00c6ff)",
     padding: "15px",
-    borderRadius: "12px",
+    borderRadius: "14px",
     marginBottom: "15px"
   },
 
-  cardTop: { display: "flex", justifyContent: "flex-end", fontWeight: "bold" },
-  cardNumber: { fontSize: "18px", letterSpacing: "2px", margin: "15px 0" },
-  cardBottom: { display: "flex", justifyContent: "space-between", fontSize: "14px" }
+  cardTop: {
+    textAlign: "right",
+    fontWeight: "bold"
+  },
+
+  cardNumber: {
+    fontSize: "18px",
+    margin: "10px 0"
+  },
+
+  cardBottom: {
+    display: "flex",
+    justifyContent: "space-between",
+    fontSize: "14px"
+  }
 };
 
 export default Wallet;
