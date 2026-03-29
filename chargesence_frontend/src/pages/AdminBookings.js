@@ -11,7 +11,7 @@ function AdminBookings() {
   const [bookingRevenue, setBookingRevenue] = useState(0);
 
   //////////////////////////////////////////////////
-  // FETCH
+  // FETCH (UNCHANGED)
   //////////////////////////////////////////////////
   const fetchBookings = () => {
     API.get(`admin/bookings/?search=${search}`)
@@ -33,7 +33,7 @@ function AdminBookings() {
   }, [search, filter]);
 
   //////////////////////////////////////////////////
-  // CANCEL ONLY
+  // CANCEL (UNCHANGED)
   //////////////////////////////////////////////////
   const cancelBooking = (id) => {
     API.put(`admin/bookings/${id}/`, { status: "CANCELLED" })
@@ -51,36 +51,37 @@ function AdminBookings() {
 
       {/* SIDEBAR */}
       <div style={styles.sidebar}>
-        <h2 style={{marginBottom:"30px"}}>⚡ Admin</h2>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-dashboard"}>Dashboard</p></div>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-users"}>Users</p></div>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-stations"}>Stations</p></div>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-chargers"}>Chargers</p></div>
+        <h2 style={styles.logo}>⚡ Admin</h2>
+
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-dashboard"}>Dashboard</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-users"}>Users</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-stations"}>Stations</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-chargers"}>Chargers</div>
         <div style={{...styles.navItem, ...styles.active}}>Bookings</div>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-vehicles"}>Vehicles</p></div>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-notifications"}>Notifications</p></div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-vehicles"}>Vehicles</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-notifications"}>Notifications</div>
       </div>
 
       {/* MAIN */}
       <div style={styles.container}>
 
-        <h1>Booking Management</h1>
+        <h1 style={styles.title}>Booking Management</h1>
 
-        {/* 🔥 REVENUE CARDS */}
+        {/* 💰 REVENUE CARDS */}
         <div style={styles.cards}>
           <div style={styles.card}>
-            <h3>Charging Revenue</h3>
-            <p>Rs. {chargingRevenue}</p>
+            <p style={styles.cardLabel}>Charging Revenue</p>
+            <h2 style={styles.cardValue}>Rs. {chargingRevenue}</h2>
           </div>
 
           <div style={styles.card}>
-            <h3>Booking Fee Revenue</h3>
-            <p>Rs. {bookingRevenue}</p>
+            <p style={styles.cardLabel}>Booking Revenue</p>
+            <h2 style={styles.cardValue}>Rs. {bookingRevenue}</h2>
           </div>
         </div>
 
-        {/* SEARCH */}
-        <div style={{display:"flex", gap:"10px", marginBottom:"20px"}}>
+        {/* FILTER BAR */}
+        <div style={styles.filterBar}>
           <input
             placeholder="🔍 Search by user..."
             value={search}
@@ -88,7 +89,11 @@ function AdminBookings() {
             style={styles.search}
           />
 
-          <select value={filter} onChange={e=>setFilter(e.target.value)}>
+          <select
+            value={filter}
+            onChange={e=>setFilter(e.target.value)}
+            style={styles.select}
+          >
             <option value="">All</option>
             <option value="PENDING">Pending</option>
             <option value="COMPLETED">Completed</option>
@@ -106,8 +111,8 @@ function AdminBookings() {
                 <th>Charger</th>
                 <th>Date</th>
                 <th>Time</th>
-                <th>Booking Fee</th>
-                <th>Charging Amount</th>
+                <th>Fee</th>
+                <th>Charge</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -122,8 +127,8 @@ function AdminBookings() {
                   <td>{b.date}</td>
                   <td>{b.start_time} - {b.end_time}</td>
 
-                  <td>Rs. {b.booking_fee}</td>
-                  <td>Rs. {b.charging_amount}</td>
+                  <td>Rs {b.booking_fee}</td>
+                  <td>Rs {b.charging_amount}</td>
 
                   <td>
                     <span style={
@@ -153,7 +158,6 @@ function AdminBookings() {
                 </tr>
               ))}
             </tbody>
-
           </table>
         </div>
 
@@ -163,49 +167,137 @@ function AdminBookings() {
 }
 
 //////////////////////////////////////////////////
-// STYLES
+//  ADMIN DESIGN SYSTEM (CONSISTENT)
 //////////////////////////////////////////////////
 
 const styles = {
-  layout:{display:"flex",height:"100vh"},
-  sidebar:{width:"220px",background:"#111",color:"#fff",padding:"20px"},
-  navItem:{padding:"10px",borderRadius:"6px",marginBottom:"5px",cursor:"pointer"},
-  active:{background:"#00c6ff"},
-  container:{flex:1,padding:"25px",background:"#f5f7fa"},
+
+  layout:{display:"flex",height:"100vh",fontFamily:"Segoe UI"},
+
+  sidebar:{
+    width:"240px",
+    background:"#0f172a",
+    color:"#fff",
+    padding:"20px"
+  },
+
+  logo:{marginBottom:"30px"},
+
+  navItem:{
+    padding:"12px",
+    borderRadius:"10px",
+    marginBottom:"8px",
+    cursor:"pointer"
+  },
+
+  active:{
+    background:"linear-gradient(135deg,#00e676,#00c6ff)",
+    color:"#000",
+    fontWeight:"bold"
+  },
+
+  container:{
+    flex:1,
+    padding:"25px",
+    background:"#f1f5f9"
+  },
+
+  title:{marginBottom:"20px"},
 
   cards:{
-    display:"flex",
-    gap:"20px",
+    display:"grid",
+    gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",
+    gap:"15px",
     marginBottom:"20px"
   },
 
   card:{
     background:"#fff",
     padding:"20px",
-    borderRadius:"10px",
-    boxShadow:"0 2px 10px rgba(0,0,0,0.05)",
-    minWidth:"200px"
+    borderRadius:"16px",
+    boxShadow:"0 8px 25px rgba(0,0,0,0.08)"
   },
 
-  search:{padding:"10px",borderRadius:"8px",border:"1px solid #ccc"},
+  cardLabel:{
+    fontSize:"13px",
+    opacity:0.7
+  },
 
-  tableWrapper:{background:"#fff",borderRadius:"10px",padding:"15px"},
-  table:{width:"100%"},
+  cardValue:{
+    marginTop:"5px"
+  },
 
-  deleteBtn:{background:"#f44336",color:"#fff",padding:"5px 10px",borderRadius:"5px"},
+  filterBar:{
+    display:"flex",
+    gap:"10px",
+    marginBottom:"20px"
+  },
+
+  search:{
+    padding:"12px",
+    borderRadius:"10px",
+    border:"1px solid #ddd",
+    flex:1
+  },
+
+  select:{
+    padding:"12px",
+    borderRadius:"10px",
+    border:"1px solid #ddd"
+  },
+
+  tableWrapper:{
+    background:"#fff",
+    borderRadius:"16px",
+    padding:"15px",
+    boxShadow:"0 8px 25px rgba(0,0,0,0.08)"
+  },
+
+  table:{
+    width:"100%",
+    borderCollapse:"collapse"
+  },
+
+  deleteBtn:{
+    background:"#ff5252",
+    color:"#fff",
+    padding:"6px 10px",
+    borderRadius:"6px",
+    border:"none"
+  },
 
   noActionBtn:{
     background:"#e0e0e0",
     color:"#666",
-    padding:"5px 10px",
-    borderRadius:"5px",
+    padding:"6px 10px",
+    borderRadius:"6px",
     border:"none",
     cursor:"not-allowed"
   },
 
-  green:{background:"#4caf50",color:"#fff",padding:"4px 8px",borderRadius:"5px"},
-  red:{background:"#f44336",color:"#fff",padding:"4px 8px",borderRadius:"5px"},
-  gray:{background:"#999",color:"#fff",padding:"4px 8px",borderRadius:"5px"}
+  green:{
+    background:"#00e676",
+    color:"#000",
+    padding:"4px 8px",
+    borderRadius:"8px",
+    fontWeight:"bold"
+  },
+
+  red:{
+    background:"#ff5252",
+    color:"#fff",
+    padding:"4px 8px",
+    borderRadius:"8px",
+    fontWeight:"bold"
+  },
+
+  gray:{
+    background:"#999",
+    color:"#fff",
+    padding:"4px 8px",
+    borderRadius:"8px",
+    fontWeight:"bold"
+  }
 };
 
 export default AdminBookings;

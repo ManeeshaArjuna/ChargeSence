@@ -19,7 +19,7 @@ function AdminVehicles() {
   });
 
   //////////////////////////////////////////////////
-  // FETCH
+  // FETCH (UNCHANGED)
   //////////////////////////////////////////////////
   const fetchData = () => {
     API.get(`admin/vehicles/?search=${search}`)
@@ -34,7 +34,7 @@ function AdminVehicles() {
   }, [search]);
 
   //////////////////////////////////////////////////
-  // MODAL
+  // MODAL (UNCHANGED)
   //////////////////////////////////////////////////
   const openCreate = () => {
     setEditing(null);
@@ -63,9 +63,9 @@ function AdminVehicles() {
   };
 
   //////////////////////////////////////////////////
-  // SAVE
+  // SAVE (UNCHANGED)
   //////////////////////////////////////////////////
-    const saveVehicle = () => {
+  const saveVehicle = () => {
 
     if (!form.user) {
         alert("Please select a user");
@@ -105,10 +105,10 @@ function AdminVehicles() {
             alert(JSON.stringify(err.response?.data));
         });
     }
-    };
+  };
 
   //////////////////////////////////////////////////
-  // DELETE
+  // DELETE (UNCHANGED)
   //////////////////////////////////////////////////
   const deleteVehicle = (id) => {
     if (!window.confirm("Delete vehicle?")) return;
@@ -125,14 +125,15 @@ function AdminVehicles() {
 
       {/* SIDEBAR */}
       <div style={styles.sidebar}>
-        <h2 style={{marginBottom:"30px"}}>⚡ Admin</h2>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-dashboard"}>Dashboard</p></div>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-users"}>Users</p></div>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-stations"}>Stations</p></div>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-chargers"}>Chargers</p></div>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-bookings"}>Bookings</p></div>
+        <h2 style={styles.logo}>⚡ Admin</h2>
+
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-dashboard"}>Dashboard</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-users"}>Users</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-stations"}>Stations</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-chargers"}>Chargers</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-bookings"}>Bookings</div>
         <div style={{...styles.navItem, ...styles.active}}>Vehicles</div>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-notifications"}>Notifications</p></div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-notifications"}>Notifications</div>
       </div>
 
       {/* MAIN */}
@@ -140,9 +141,12 @@ function AdminVehicles() {
 
         <div style={styles.header}>
           <h1>Vehicle Management</h1>
-          <button onClick={openCreate} style={styles.primaryBtn}>+ Add Vehicle</button>
+          <button onClick={openCreate} style={styles.primaryBtn}>
+            + Add Vehicle
+          </button>
         </div>
 
+        {/* SEARCH */}
         <input
           placeholder="🔍 Search vehicles..."
           value={search}
@@ -150,13 +154,14 @@ function AdminVehicles() {
           style={styles.search}
         />
 
+        {/* TABLE */}
         <div style={styles.tableWrapper}>
           <table style={styles.table}>
             <thead>
               <tr>
                 <th>User</th>
                 <th>Vehicle</th>
-                <th>Battery (kWh)</th>
+                <th>Battery</th>
                 <th>Efficiency</th>
                 <th>Connector</th>
                 <th>Actions</th>
@@ -168,9 +173,10 @@ function AdminVehicles() {
                 <tr key={v.id}>
                   <td>{v.user}</td>
                   <td>{v.manufacturer} {v.model}</td>
-                  <td>{v.battery}</td>
+                  <td>{v.battery} kWh</td>
                   <td>{v.efficiency}</td>
                   <td>{v.connector_type}</td>
+
                   <td>
                     <button onClick={()=>openEdit(v)} style={styles.editBtn}>Edit</button>
                     <button onClick={()=>deleteVehicle(v.id)} style={styles.deleteBtn}>Delete</button>
@@ -191,11 +197,12 @@ function AdminVehicles() {
             <h3>{editing ? "Edit Vehicle" : "Create Vehicle"}</h3>
 
             <select
-            value={form.user}
-            onChange={e => setForm({
+              style={styles.input}
+              value={form.user}
+              onChange={e => setForm({
                 ...form,
                 user: parseInt(e.target.value)
-            })}
+              })}
             >
               <option value="">Select User</option>
               {users.map(u => (
@@ -203,12 +210,12 @@ function AdminVehicles() {
               ))}
             </select>
 
-            <input placeholder="Manufacturer" value={form.manufacturer} onChange={e=>setForm({...form, manufacturer:e.target.value})}/>
-            <input placeholder="Model" value={form.model} onChange={e=>setForm({...form, model:e.target.value})}/>
-            <input placeholder="Battery (kWh)" value={form.battery} onChange={e=>setForm({...form, battery:e.target.value})}/>
-            <input placeholder="Efficiency (Wh/km)" value={form.efficiency} onChange={e=>setForm({...form, efficiency:e.target.value})}/>
+            <input style={styles.input} placeholder="Manufacturer" value={form.manufacturer} onChange={e=>setForm({...form, manufacturer:e.target.value})}/>
+            <input style={styles.input} placeholder="Model" value={form.model} onChange={e=>setForm({...form, model:e.target.value})}/>
+            <input style={styles.input} placeholder="Battery (kWh)" value={form.battery} onChange={e=>setForm({...form, battery:e.target.value})}/>
+            <input style={styles.input} placeholder="Efficiency (Wh/km)" value={form.efficiency} onChange={e=>setForm({...form, efficiency:e.target.value})}/>
 
-            <select value={form.connector_type} onChange={e=>setForm({...form, connector_type:e.target.value})}>
+            <select style={styles.input} value={form.connector_type} onChange={e=>setForm({...form, connector_type:e.target.value})}>
               <option value="TYPE1">Type1</option>
               <option value="TYPE2">Type2</option>
               <option value="CCS">CCS</option>
@@ -216,10 +223,8 @@ function AdminVehicles() {
               <option value="CHADEMO">CHAdeMO</option>
             </select>
 
-            <div style={{display:"flex", gap:"10px"}}>
-              <button onClick={saveVehicle} style={styles.primaryBtn}>Save</button>
-              <button onClick={()=>setShowModal(false)} style={styles.secondaryBtn}>Cancel</button>
-            </div>
+            <button onClick={saveVehicle} style={styles.primaryBtn}>Save</button>
+            <button onClick={()=>setShowModal(false)} style={styles.secondaryBtn}>Cancel</button>
 
           </div>
         </div>
@@ -229,22 +234,121 @@ function AdminVehicles() {
   );
 }
 
+//////////////////////////////////////////////////
+//  ADMIN DESIGN SYSTEM
+//////////////////////////////////////////////////
+
 const styles = {
-  layout:{display:"flex",height:"100vh"},
-  sidebar:{width:"220px",background:"#111",color:"#fff",padding:"20px"},
-  navItem:{padding:"10px",borderRadius:"6px",marginBottom:"5px",cursor:"pointer"},
-  active:{background:"#00c6ff"},
-  container:{flex:1,padding:"25px",background:"#f5f7fa"},
-  header:{display:"flex",justifyContent:"space-between",marginBottom:"20px"},
-  search:{padding:"10px",borderRadius:"8px",border:"1px solid #ccc",marginBottom:"20px"},
-  tableWrapper:{background:"#fff",borderRadius:"10px",padding:"15px"},
-  table:{width:"100%"},
-  primaryBtn:{background:"#00c6ff",color:"#fff",padding:"8px 15px",borderRadius:"6px"},
-  secondaryBtn:{background:"#ccc",padding:"8px 15px",borderRadius:"6px"},
-  editBtn:{background:"#4caf50",color:"#fff",marginRight:"5px",padding:"5px 10px"},
-  deleteBtn:{background:"#f44336",color:"#fff",padding:"5px 10px"},
-  overlay:{position:"fixed",top:0,left:0,width:"100%",height:"100%",background:"rgba(0,0,0,0.5)"},
-  modal:{background:"#fff",padding:"20px",margin:"80px auto",width:"320px",borderRadius:"10px",display:"flex",flexDirection:"column",gap:"10px"}
+
+  layout:{display:"flex",height:"100vh",fontFamily:"Segoe UI"},
+
+  sidebar:{
+    width:"240px",
+    background:"#0f172a",
+    color:"#fff",
+    padding:"20px"
+  },
+
+  logo:{marginBottom:"30px"},
+
+  navItem:{
+    padding:"12px",
+    borderRadius:"10px",
+    marginBottom:"8px",
+    cursor:"pointer"
+  },
+
+  active:{
+    background:"linear-gradient(135deg,#00e676,#00c6ff)",
+    color:"#000",
+    fontWeight:"bold"
+  },
+
+  container:{
+    flex:1,
+    padding:"25px",
+    background:"#f1f5f9"
+  },
+
+  header:{
+    display:"flex",
+    justifyContent:"space-between",
+    marginBottom:"20px"
+  },
+
+  search:{
+    padding:"12px",
+    borderRadius:"10px",
+    border:"1px solid #ddd",
+    marginBottom:"20px",
+    width:"300px"
+  },
+
+  tableWrapper:{
+    background:"#fff",
+    borderRadius:"16px",
+    padding:"15px",
+    boxShadow:"0 8px 25px rgba(0,0,0,0.08)"
+  },
+
+  table:{width:"100%",borderCollapse:"collapse"},
+
+  primaryBtn:{
+    background:"linear-gradient(135deg,#00e676,#00c6ff)",
+    border:"none",
+    padding:"10px",
+    borderRadius:"8px",
+    fontWeight:"bold"
+  },
+
+  secondaryBtn:{
+    marginTop:"8px",
+    padding:"10px",
+    borderRadius:"8px",
+    border:"none",
+    background:"#ddd"
+  },
+
+  editBtn:{
+    background:"#00e676",
+    border:"none",
+    padding:"6px",
+    borderRadius:"6px",
+    marginRight:"5px"
+  },
+
+  deleteBtn:{
+    background:"#ff5252",
+    color:"#fff",
+    border:"none",
+    padding:"6px",
+    borderRadius:"6px"
+  },
+
+  overlay:{
+    position:"fixed",
+    top:0,left:0,width:"100%",height:"100%",
+    background:"rgba(0,0,0,0.6)",
+    display:"flex",
+    justifyContent:"center",
+    alignItems:"center"
+  },
+
+  modal:{
+    background:"#fff",
+    padding:"20px",
+    borderRadius:"16px",
+    width:"320px",
+    display:"flex",
+    flexDirection:"column",
+    gap:"10px"
+  },
+
+  input:{
+    padding:"10px",
+    borderRadius:"8px",
+    border:"1px solid #ccc"
+  }
 };
 
 export default AdminVehicles;

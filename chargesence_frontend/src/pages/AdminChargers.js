@@ -19,7 +19,7 @@ function AdminChargers() {
   });
 
   //////////////////////////////////////////////////
-  // FETCH
+  // FETCH (UNCHANGED)
   //////////////////////////////////////////////////
   const fetchData = () => {
     API.get(`admin/chargers/?search=${search}`)
@@ -34,7 +34,7 @@ function AdminChargers() {
   }, [search]);
 
   //////////////////////////////////////////////////
-  // MODAL
+  // MODAL (UNCHANGED)
   //////////////////////////////////////////////////
   const openCreate = () => {
     setEditing(null);
@@ -63,7 +63,7 @@ function AdminChargers() {
   };
 
   //////////////////////////////////////////////////
-  // SAVE
+  // SAVE (UNCHANGED)
   //////////////////////////////////////////////////
   const saveCharger = () => {
     if (editing) {
@@ -84,7 +84,7 @@ function AdminChargers() {
   };
 
   //////////////////////////////////////////////////
-  // DELETE
+  // DELETE (UNCHANGED)
   //////////////////////////////////////////////////
   const deleteCharger = (id) => {
     if (!window.confirm("Delete charger?")) return;
@@ -101,25 +101,15 @@ function AdminChargers() {
 
       {/* SIDEBAR */}
       <div style={styles.sidebar}>
-        <h2 style={{marginBottom:"30px"}}>⚡ Admin</h2>
+        <h2 style={styles.logo}>⚡ Admin</h2>
 
-        <div style={styles.navItem}>
-          <p onClick={()=>window.location.href="/admin-dashboard"}>Dashboard</p>
-        </div>
-
-        <div style={styles.navItem}>
-          <p onClick={()=>window.location.href="/admin-users"}>Users</p>
-        </div>
-
-        <div style={styles.navItem}>
-          <p onClick={()=>window.location.href="/admin-stations"}>Stations</p>
-        </div>
-
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-dashboard"}>Dashboard</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-users"}>Users</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-stations"}>Stations</div>
         <div style={{...styles.navItem, ...styles.active}}>Chargers</div>
-
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-bookings"}>Bookings</p></div>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-vehicles"}>Vehicles</p></div>
-        <div style={styles.navItem}><p onClick={()=>window.location.href="/admin-notifications"}>Notifications</p></div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-bookings"}>Bookings</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-vehicles"}>Vehicles</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-notifications"}>Notifications</div>
       </div>
 
       {/* MAIN */}
@@ -127,7 +117,6 @@ function AdminChargers() {
 
         <div style={styles.header}>
           <h1>Charger Management</h1>
-
           <button onClick={openCreate} style={styles.primaryBtn}>
             + Add Charger
           </button>
@@ -149,8 +138,8 @@ function AdminChargers() {
                 <th>Station</th>
                 <th>Type</th>
                 <th>Connector</th>
-                <th>Power (kW)</th>
-                <th>Cost (Rs/kWh)</th>
+                <th>Power</th>
+                <th>Cost</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -162,13 +151,15 @@ function AdminChargers() {
                   <td>{c.station_name}</td>
                   <td>{c.charger_type}</td>
                   <td>{c.connector_type}</td>
-                  <td>{c.power_kw}</td>
-                  <td>{c.unit_cost}</td>
+                  <td>{c.power_kw} kW</td>
+                  <td>Rs {c.unit_cost}</td>
+
                   <td>
                     <span style={c.is_available ? styles.activeTag : styles.inactiveTag}>
                       {c.is_available ? "Available" : "Maintenance"}
                     </span>
                   </td>
+
                   <td>
                     <button onClick={()=>openEdit(c)} style={styles.editBtn}>Edit</button>
                     <button onClick={()=>deleteCharger(c.id)} style={styles.deleteBtn}>Delete</button>
@@ -188,8 +179,7 @@ function AdminChargers() {
           <div style={styles.modal}>
             <h3>{editing ? "Edit Charger" : "Create Charger"}</h3>
 
-            {/* STATION */}
-            <select
+            <select style={styles.input}
               value={form.station}
               onChange={e=>setForm({...form, station:e.target.value})}
             >
@@ -201,14 +191,18 @@ function AdminChargers() {
               ))}
             </select>
 
-            {/* TYPE */}
-            <select value={form.charger_type} onChange={e=>setForm({...form, charger_type:e.target.value})}>
+            <select style={styles.input}
+              value={form.charger_type}
+              onChange={e=>setForm({...form, charger_type:e.target.value})}
+            >
               <option value="L2">L2</option>
               <option value="L3">L3 Fast</option>
             </select>
 
-            {/* CONNECTOR */}
-            <select value={form.connector_type} onChange={e=>setForm({...form, connector_type:e.target.value})}>
+            <select style={styles.input}
+              value={form.connector_type}
+              onChange={e=>setForm({...form, connector_type:e.target.value})}
+            >
               <option value="TYPE1">Type1</option>
               <option value="TYPE2">Type2</option>
               <option value="CCS">CCS</option>
@@ -217,8 +211,17 @@ function AdminChargers() {
               <option value="GBT">GBT</option>
             </select>
 
-            <input placeholder="Power (kW)" value={form.power_kw} onChange={e=>setForm({...form, power_kw:e.target.value})}/>
-            <input placeholder="Cost per kWh" value={form.unit_cost} onChange={e=>setForm({...form, unit_cost:e.target.value})}/>
+            <input style={styles.input}
+              placeholder="Power (kW)"
+              value={form.power_kw}
+              onChange={e=>setForm({...form, power_kw:e.target.value})}
+            />
+
+            <input style={styles.input}
+              placeholder="Cost per kWh"
+              value={form.unit_cost}
+              onChange={e=>setForm({...form, unit_cost:e.target.value})}
+            />
 
             <label>
               <input
@@ -229,10 +232,8 @@ function AdminChargers() {
               Available
             </label>
 
-            <div style={{display:"flex", gap:"10px"}}>
-              <button onClick={saveCharger} style={styles.primaryBtn}>Save</button>
-              <button onClick={()=>setShowModal(false)} style={styles.secondaryBtn}>Cancel</button>
-            </div>
+            <button onClick={saveCharger} style={styles.primaryBtn}>Save</button>
+            <button onClick={()=>setShowModal(false)} style={styles.secondaryBtn}>Cancel</button>
           </div>
         </div>
       )}
@@ -242,51 +243,135 @@ function AdminChargers() {
 }
 
 //////////////////////////////////////////////////
-// 🎨 STYLES
+// ADMIN DESIGN SYSTEM (CONSISTENT)
 //////////////////////////////////////////////////
 
 const styles = {
-  layout: { display:"flex", height:"100vh", fontFamily:"Arial" },
 
-  sidebar:{ width:"220px", background:"#111", color:"#fff", padding:"20px" },
+  layout:{display:"flex",height:"100vh",fontFamily:"Segoe UI"},
 
-  navItem:{ padding:"10px", borderRadius:"6px", marginBottom:"5px", cursor:"pointer" },
+  sidebar:{
+    width:"240px",
+    background:"#0f172a",
+    color:"#fff",
+    padding:"20px"
+  },
 
-  active:{ background:"#00c6ff" },
+  logo:{marginBottom:"30px"},
 
-  container:{ flex:1, padding:"25px", background:"#f5f7fa" },
+  navItem:{
+    padding:"12px",
+    borderRadius:"10px",
+    marginBottom:"8px",
+    cursor:"pointer"
+  },
 
-  header:{ display:"flex", justifyContent:"space-between", marginBottom:"20px" },
+  active:{
+    background:"linear-gradient(135deg,#00e676,#00c6ff)",
+    color:"#000",
+    fontWeight:"bold"
+  },
 
-  search:{ padding:"10px", width:"300px", borderRadius:"8px", border:"1px solid #ccc", marginBottom:"20px" },
+  container:{
+    flex:1,
+    padding:"25px",
+    background:"#f1f5f9"
+  },
 
-  tableWrapper:{ background:"#fff", borderRadius:"10px", padding:"15px", boxShadow:"0 2px 10px rgba(0,0,0,0.05)" },
+  header:{
+    display:"flex",
+    justifyContent:"space-between",
+    marginBottom:"20px"
+  },
 
-  table:{ width:"100%", borderCollapse:"collapse" },
+  search:{
+    padding:"12px",
+    borderRadius:"10px",
+    border:"1px solid #ddd",
+    marginBottom:"20px",
+    width:"300px"
+  },
 
-  primaryBtn:{ background:"#00c6ff", color:"#fff", padding:"8px 15px", border:"none", borderRadius:"6px" },
+  tableWrapper:{
+    background:"#fff",
+    borderRadius:"16px",
+    padding:"15px",
+    boxShadow:"0 8px 25px rgba(0,0,0,0.08)"
+  },
 
-  secondaryBtn:{ background:"#ccc", padding:"8px 15px", border:"none", borderRadius:"6px" },
+  table:{width:"100%",borderCollapse:"collapse"},
 
-  editBtn:{ background:"#4caf50", color:"#fff", padding:"5px 10px", borderRadius:"5px", marginRight:"5px" },
+  primaryBtn:{
+    background:"linear-gradient(135deg,#00e676,#00c6ff)",
+    border:"none",
+    padding:"10px",
+    borderRadius:"8px",
+    fontWeight:"bold"
+  },
 
-  deleteBtn:{ background:"#f44336", color:"#fff", padding:"5px 10px", borderRadius:"5px" },
+  secondaryBtn:{
+    marginTop:"8px",
+    padding:"10px",
+    borderRadius:"8px",
+    border:"none",
+    background:"#ddd"
+  },
 
-  activeTag:{ background:"#4caf50", color:"#fff", padding:"3px 8px", borderRadius:"5px" },
+  editBtn:{
+    background:"#00e676",
+    border:"none",
+    padding:"6px",
+    borderRadius:"6px",
+    marginRight:"5px"
+  },
 
-  inactiveTag:{ background:"#999", color:"#fff", padding:"3px 8px", borderRadius:"5px" },
+  deleteBtn:{
+    background:"#ff5252",
+    color:"#fff",
+    border:"none",
+    padding:"6px",
+    borderRadius:"6px"
+  },
 
-  overlay:{ position:"fixed", top:0,left:0,width:"100%",height:"100%",background:"rgba(0,0,0,0.5)" },
+  activeTag:{
+    background:"#00e676",
+    color:"#000",
+    padding:"4px 8px",
+    borderRadius:"8px",
+    fontWeight:"bold"
+  },
+
+  inactiveTag:{
+    background:"#ff5252",
+    color:"#fff",
+    padding:"4px 8px",
+    borderRadius:"8px",
+    fontWeight:"bold"
+  },
+
+  overlay:{
+    position:"fixed",
+    top:0,left:0,width:"100%",height:"100%",
+    background:"rgba(0,0,0,0.6)",
+    display:"flex",
+    justifyContent:"center",
+    alignItems:"center"
+  },
 
   modal:{
     background:"#fff",
     padding:"20px",
-    margin:"80px auto",
+    borderRadius:"16px",
     width:"320px",
-    borderRadius:"10px",
     display:"flex",
     flexDirection:"column",
     gap:"10px"
+  },
+
+  input:{
+    padding:"10px",
+    borderRadius:"8px",
+    border:"1px solid #ccc"
   }
 };
 

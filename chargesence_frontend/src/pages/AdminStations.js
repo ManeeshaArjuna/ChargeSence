@@ -18,7 +18,7 @@ function AdminStations() {
   });
 
   //////////////////////////////////////////////////
-  // FETCH
+  // FETCH (UNCHANGED)
   //////////////////////////////////////////////////
   const fetchStations = () => {
     API.get(`admin/stations/?search=${search}`)
@@ -30,7 +30,7 @@ function AdminStations() {
   }, [search]);
 
   //////////////////////////////////////////////////
-  // MODAL
+  // MODAL (UNCHANGED)
   //////////////////////////////////////////////////
   const openCreate = () => {
     setEditing(null);
@@ -59,7 +59,7 @@ function AdminStations() {
   };
 
   //////////////////////////////////////////////////
-  // SAVE
+  // SAVE (UNCHANGED)
   //////////////////////////////////////////////////
   const saveStation = () => {
     if (editing) {
@@ -80,7 +80,7 @@ function AdminStations() {
   };
 
   //////////////////////////////////////////////////
-  // DELETE
+  // DELETE (UNCHANGED)
   //////////////////////////////////////////////////
   const deleteStation = (id) => {
     if (!window.confirm("Delete station?")) return;
@@ -97,32 +97,15 @@ function AdminStations() {
 
       {/* SIDEBAR */}
       <div style={styles.sidebar}>
-        <h2 style={{marginBottom:"30px"}}>⚡ Admin</h2>
+        <h2 style={styles.logo}>⚡ Admin</h2>
 
-        <div style={styles.navItem}>
-          <p onClick={() => window.location.href="/admin-dashboard"} style={{cursor:"pointer"}}>Dashboard</p>
-        </div>
-
-        <div style={styles.navItem}>
-          <p onClick={() => window.location.href="/admin-users"} style={{cursor:"pointer"}}>Users</p>
-        </div>
-
-        <div style={{...styles.navItem, ...styles.active}}>
-          <p onClick={() => window.location.href="/admin-stations"} style={{cursor:"pointer"}}>Stations</p>
-        </div>
-
-        <div style={styles.navItem}>
-          <p onClick={() => window.location.href="/admin-chargers"} style={{cursor:"pointer"}}>Chargers</p>
-        </div>
-        <div style={styles.navItem}>
-          <p onClick={() => window.location.href="/admin-bookings"} style={{cursor:"pointer"}}>Bookings</p>
-        </div>
-        <div style={styles.navItem}>
-          <p onClick={() => window.location.href="/admin-vehicles"} style={{cursor:"pointer"}}>Vehicles</p>
-        </div>
-        <div style={styles.navItem}>
-          <p onClick={() => window.location.href="/admin-notifications"} style={{cursor:"pointer"}}>Notifications</p>
-        </div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-dashboard"}>Dashboard</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-users"}>Users</div>
+        <div style={{...styles.navItem, ...styles.active}}>Stations</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-chargers"}>Chargers</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-bookings"}>Bookings</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-vehicles"}>Vehicles</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/admin-notifications"}>Notifications</div>
       </div>
 
       {/* MAIN */}
@@ -130,13 +113,9 @@ function AdminStations() {
 
         <div style={styles.header}>
           <h1>Charging Stations</h1>
-
-          <button onClick={openCreate} style={styles.primaryBtn}>
-            + Add Station
-          </button>
+          <button onClick={openCreate} style={styles.primaryBtn}>+ Add Station</button>
         </div>
 
-        {/* SEARCH */}
         <input
           placeholder="🔍 Search stations..."
           value={search}
@@ -153,8 +132,8 @@ function AdminStations() {
                 <th>Address</th>
                 <th>Phone</th>
                 <th>Map</th>
-                <th>Latitude</th>
-                <th>Longitude</th>
+                <th>Lat</th>
+                <th>Lng</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -165,27 +144,25 @@ function AdminStations() {
                   <td>{s.station_name}</td>
                   <td>{s.address}</td>
                   <td>{s.telephone}</td>
+
                   <td>
                     {s.google_map_link ? (
                       <a href={s.google_map_link} target="_blank" rel="noreferrer" style={styles.link}>
-                        View Map
+                        View
                       </a>
                     ) : "-"}
                   </td>
+
                   <td>{s.lat}</td>
                   <td>{s.lng}</td>
+
                   <td>
-                    <button onClick={() => openEdit(s)} style={styles.editBtn}>
-                      Edit
-                    </button>
-                    <button onClick={() => deleteStation(s.id)} style={styles.deleteBtn}>
-                      Delete
-                    </button>
+                    <button onClick={() => openEdit(s)} style={styles.editBtn}>Edit</button>
+                    <button onClick={() => deleteStation(s.id)} style={styles.deleteBtn}>Delete</button>
                   </td>
                 </tr>
               ))}
             </tbody>
-
           </table>
         </div>
 
@@ -204,10 +181,8 @@ function AdminStations() {
             <input style={styles.input} placeholder="Latitude" value={form.lat} onChange={e=>setForm({...form, lat:e.target.value})}/>
             <input style={styles.input} placeholder="Longitude" value={form.lng} onChange={e=>setForm({...form, lng:e.target.value})}/>
 
-            <div style={{display:"flex", gap:"10px"}}>
-              <button onClick={saveStation} style={styles.primaryBtn}>Save</button>
-              <button onClick={()=>setShowModal(false)} style={styles.secondaryBtn}>Cancel</button>
-            </div>
+            <button onClick={saveStation} style={styles.primaryBtn}>Save</button>
+            <button onClick={()=>setShowModal(false)} style={styles.secondaryBtn}>Cancel</button>
           </div>
         </div>
       )}
@@ -217,127 +192,125 @@ function AdminStations() {
 }
 
 //////////////////////////////////////////////////
-// 🎨 STYLES (MATCHED WITH USERS PAGE)
+// 🎨 ADMIN DESIGN SYSTEM (CONSISTENT)
 //////////////////////////////////////////////////
 
 const styles = {
-  layout: { display: "flex", height: "100vh", fontFamily: "Arial" },
 
-  sidebar: {
-    width: "220px",
-    background: "#111",
-    color: "#fff",
-    padding: "20px"
+  layout:{display:"flex",height:"100vh",fontFamily:"Segoe UI"},
+
+  sidebar:{
+    width:"240px",
+    background:"#0f172a",
+    color:"#fff",
+    padding:"20px"
   },
 
-  navItem: {
-    padding: "10px",
-    cursor: "pointer",
-    borderRadius: "6px",
-    marginBottom: "5px"
+  logo:{marginBottom:"30px"},
+
+  navItem:{
+    padding:"12px",
+    borderRadius:"10px",
+    marginBottom:"8px",
+    cursor:"pointer"
   },
 
-  active: {
-    background: "#00c6ff"
+  active:{
+    background:"linear-gradient(135deg,#00e676,#00c6ff)",
+    color:"#000",
+    fontWeight:"bold"
   },
 
-  container: {
-    flex: 1,
-    padding: "25px",
-    background: "#f5f7fa"
+  container:{
+    flex:1,
+    padding:"25px",
+    background:"#f1f5f9"
   },
 
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "20px"
+  header:{
+    display:"flex",
+    justifyContent:"space-between",
+    marginBottom:"20px"
   },
 
-  search: {
-    padding: "10px",
-    width: "300px",
-    borderRadius: "8px",
-    border: "1px solid #ccc",
-    marginBottom: "20px"
+  search:{
+    padding:"12px",
+    borderRadius:"10px",
+    border:"1px solid #ddd",
+    marginBottom:"20px",
+    width:"300px"
   },
 
-  tableWrapper: {
-    background: "#fff",
-    borderRadius: "10px",
-    padding: "15px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
+  tableWrapper:{
+    background:"#fff",
+    borderRadius:"16px",
+    padding:"15px",
+    boxShadow:"0 8px 25px rgba(0,0,0,0.08)"
   },
 
-  table: {
-    width: "100%",
-    borderCollapse: "collapse"
+  table:{width:"100%",borderCollapse:"collapse"},
+
+  primaryBtn:{
+    background:"linear-gradient(135deg,#00e676,#00c6ff)",
+    border:"none",
+    padding:"10px",
+    borderRadius:"8px",
+    fontWeight:"bold"
   },
 
-  primaryBtn: {
-    background: "#00c6ff",
-    color: "#fff",
-    padding: "8px 15px",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer"
+  secondaryBtn:{
+    marginTop:"8px",
+    padding:"10px",
+    borderRadius:"8px",
+    border:"none",
+    background:"#ddd"
   },
 
-  secondaryBtn: {
-    background: "#ccc",
-    padding: "8px 15px",
-    border: "none",
-    borderRadius: "6px"
+  editBtn:{
+    background:"#00e676",
+    border:"none",
+    padding:"6px",
+    borderRadius:"6px",
+    marginRight:"5px"
   },
 
-  editBtn: {
-    marginRight: "5px",
-    padding: "5px 10px",
-    background: "#4caf50",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px"
+  deleteBtn:{
+    background:"#ff5252",
+    color:"#fff",
+    border:"none",
+    padding:"6px",
+    borderRadius:"6px"
   },
 
-  deleteBtn: {
-    padding: "5px 10px",
-    background: "#f44336",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px"
+  link:{
+    color:"#00c6ff",
+    fontWeight:"bold",
+    textDecoration:"none"
   },
 
-  link: {
-    color: "#00c6ff",
-    textDecoration: "none",
-    fontWeight: "bold"
+  overlay:{
+    position:"fixed",
+    top:0,left:0,width:"100%",height:"100%",
+    background:"rgba(0,0,0,0.6)",
+    display:"flex",
+    justifyContent:"center",
+    alignItems:"center"
   },
 
-  overlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    background: "rgba(0,0,0,0.5)"
+  modal:{
+    background:"#fff",
+    padding:"20px",
+    borderRadius:"16px",
+    width:"320px",
+    display:"flex",
+    flexDirection:"column",
+    gap:"10px"
   },
 
-  modal: {
-    background: "#fff",
-    padding: "20px",
-    margin: "80px auto",
-    width: "320px",
-    borderRadius: "10px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-    boxShadow: "0 5px 20px rgba(0,0,0,0.2)"
-  },
-
-  input: {
-    padding: "8px",
-    border: "1px solid #ccc",
-    borderRadius: "6px"
+  input:{
+    padding:"10px",
+    borderRadius:"8px",
+    border:"1px solid #ccc"
   }
 };
 
