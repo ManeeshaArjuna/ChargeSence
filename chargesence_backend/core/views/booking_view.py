@@ -35,7 +35,7 @@ def send_sms(phone, message):
 
         data = {
             "recipient": phone,
-            "sender_id": "TextLKDemo",
+            "sender_id": "ChargeSence",
             "message": message
         }
 
@@ -107,13 +107,13 @@ def available_slots(request):
         eta = 0
 
     try:
-        # ✅ USE NAIVE TIME (MATCH YOUR DB)
+        #  USE NAIVE TIME (MATCH YOUR DB)
         now = timezone.localtime(timezone.now())
 
-        # ✅ ADD ETA
+        #  ADD ETA
         now = now + timedelta(minutes=eta)
 
-        # ✅ ROUND TO NEXT 5 MIN
+        #  ROUND TO NEXT 5 MIN
         minute = (now.minute // 5 + 1) * 5
         if minute >= 60:
             now = now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
@@ -308,37 +308,37 @@ def complete_booking(request):
             user=request.user
         )
 
-        # 🔋 Energy & cost
+        #  Energy & cost
         energy = Decimal(str(request.data.get("energy_used")))
         cost = energy * booking.charger.unit_cost
 
-        # 💳 Wallet
+        #  Wallet
         wallet = Wallet.objects.get(user=request.user)
 
         if wallet.balance < cost:
             return Response({"error": "Insufficient balance"}, status=400)
 
-        # ✅ Deduct wallet (ONLY ONCE)
+        #  Deduct wallet (ONLY ONCE)
         wallet.balance -= cost
         wallet.save()
 
-        # ⚠️ Low balance alert
+        #  Low balance alert
         check_low_balance(request.user, wallet)
 
-        # 💾 Transaction record
+        #  Transaction record
         WalletTransaction.objects.create(
             wallet=wallet,
             transaction_type='PAYMENT',
             amount=cost
         )
 
-        # 📦 Update booking
+        #  Update booking
         booking.energy_used_kwh = energy
         booking.final_amount = cost
         booking.status = "COMPLETED"
         booking.save()
 
-        # 🎁 REWARD SYSTEM (FIXED)
+        #  REWARD SYSTEM (FIXED)
         reward_points = int(cost // 100)
 
         reward_obj, _ = Reward.objects.get_or_create(user=request.user)
@@ -347,7 +347,7 @@ def complete_booking(request):
 
         print(f"🎁 Reward added: {reward_points}")
 
-        # 📩 SMS
+        #  SMS
         send_sms(
             request.user.phone_number,
             f"⚡ Charging completed. Cost: Rs {cost}. 🎁 Earned {reward_points} points!"

@@ -11,7 +11,7 @@ from core.views.recommendation_views import recommend_best_charger
 
 from core.views.queue_views import join_queue
 
-from core.views.admin_views import  admin_stats
+from core.views.admin_views import  admin_reset_password, admin_send_otp, admin_stats, admin_verify_otp, create_charger, create_station, delete_charger, delete_station, get_bookings, get_chargers, get_stations, get_vehicles, send_notifications, update_booking_status, update_charger, update_station, update_vehicle
 
 from core.views.home import home_dashboard
 
@@ -112,5 +112,29 @@ urlpatterns = [
     path("admin/users/create/", create_user),
     path("admin/users/<int:id>/", update_user),
     path("admin/users/<int:id>/delete/", delete_user),
+
+    path("admin/password/send-otp/", admin_send_otp),
+    path("admin/password/verify-otp/", admin_verify_otp),
+    path("admin/password/reset/", admin_reset_password),
+
+    path("admin/stations/", get_stations),
+    path("admin/stations/create/", create_station),
+    path("admin/stations/<int:id>/", update_station),
+    path("admin/stations/<int:id>/delete/", delete_station),
+
+    path("admin/chargers/", get_chargers),
+    path("admin/chargers/create/", create_charger),
+    path("admin/chargers/<int:id>/", update_charger),
+    path("admin/chargers/<int:id>/delete/", delete_charger),
+
+    path("admin/bookings/", get_bookings),
+    path("admin/bookings/<int:id>/", update_booking_status),
+
+    path("admin/vehicles/", get_vehicles),
+    path("admin/vehicles/create/", create_vehicle),
+    path("admin/vehicles/<int:id>/", update_vehicle),
+    path("admin/vehicles/<int:id>/delete/", delete_vehicle),
+
+    path("admin/notifications/send/", send_notifications),
 
 ]

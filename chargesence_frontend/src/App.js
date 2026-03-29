@@ -12,6 +12,11 @@ import ActivityPage from "./pages/ActivityPage";
 import LandingPage from "./pages/LandingPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
+import AdminStations from "./pages/AdminStations";
+import AdminChargers from "./pages/AdminChargers";
+import AdminBookings from "./pages/AdminBookings";
+import AdminVehicles from "./pages/AdminVehicles";
+import AdminNotifications from "./pages/AdminNotifications";
 
 function App() {
   return (
@@ -29,6 +34,11 @@ function App() {
       <Route path="/activity" element={<ActivityPage />} />
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
       <Route path="/admin-users" element={<AdminUsers />} />
+      <Route path="/admin-stations" element={<AdminStations />} />
+      <Route path="/admin-chargers" element={<AdminChargers />} />
+      <Route path="/admin-bookings" element={<AdminBookings />} />
+      <Route path="/admin-vehicles" element={<AdminVehicles />} />
+      <Route path="/admin-notifications" element={<AdminNotifications />} />
     </Routes>
   );
 }

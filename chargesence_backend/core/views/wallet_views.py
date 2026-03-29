@@ -26,7 +26,7 @@ def send_sms(phone, message):
 
         data = {
             "recipient": phone,
-            "sender_id": "TextLKDemo",
+            "sender_id": "ChargeSence",
             "message": message
         }
 

@@ -128,7 +128,7 @@ function Signup() {
           Already have an account?{" "}
           <span
             style={styles.link}
-            onClick={() => (window.location.href = "/")}
+            onClick={() => (window.location.href = "/login")}
           >
             LOGIN
           </span>

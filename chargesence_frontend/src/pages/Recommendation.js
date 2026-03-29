@@ -237,6 +237,14 @@ useEffect(() => {
 
       </div>
 
+      <div style={styles.nav}>
+        <p onClick={() => (window.location.href = "/home")}>Home</p>
+        <p onClick={() => (window.location.href = "/booking")}>Booking</p>
+        <p onClick={() => (window.location.href = "/activity")}>Activity</p>
+        <p onClick={() => (window.location.href = "/wallet")}>Wallet</p>
+        <p onClick={() => (window.location.href = "/more")}>More</p>
+      </div>
+
     </div>
   );
 }
@@ -303,6 +311,20 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
   },
+  nav: {
+    position: "fixed",
+    bottom: 0,
+    width: "100%",
+    display: "flex",
+    justifyContent: "space-around",
+    backgroundColor: colors.white,
+    padding: "10px",
+  },
+  active: {
+    color: colors.primary,
+    fontWeight: "bold",
+  }
+  
 };
 
 export default Recommendation;

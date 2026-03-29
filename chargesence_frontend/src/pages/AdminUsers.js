@@ -8,6 +8,12 @@ function AdminUsers() {
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
+ const [showOTPModal, setShowOTPModal] = useState(false);
+ const [selectedUser, setSelectedUser] = useState(null);
+ const [otp, setOtp] = useState("");
+ const [newPassword, setNewPassword] = useState("");
+ const [otpVerified, setOtpVerified] = useState(false);
+
   const [form, setForm] = useState({
     username: "",
     email: "",
@@ -88,6 +94,45 @@ function AdminUsers() {
       .then(() => fetchUsers());
   };
 
+    // SEND OTP
+    const sendOTP = (user) => {
+    setSelectedUser(user);
+
+    API.post("admin/password/send-otp/", { user_id: user.id })
+        .then(() => {
+        alert("OTP sent to user");
+        setShowOTPModal(true);
+        });
+    };
+
+    // VERIFY OTP
+    const verifyOTP = () => {
+    API.post("admin/password/verify-otp/", {
+        user_id: selectedUser.id,
+        otp
+    })
+        .then(() => {
+        alert("OTP verified");
+        setOtpVerified(true);
+        })
+        .catch(() => alert("Invalid OTP"));
+    };
+
+    // RESET PASSWORD
+    const resetPassword = () => {
+    API.post("admin/password/reset/", {
+        user_id: selectedUser.id,
+        password: newPassword
+    })
+        .then(() => {
+        alert("Password updated");
+        setShowOTPModal(false);
+        setOtpVerified(false);
+        setOtp("");
+        setNewPassword("");
+        });
+    };
+
   //////////////////////////////////////////////////
   // UI
   //////////////////////////////////////////////////
@@ -100,10 +145,11 @@ function AdminUsers() {
 
         <div style={styles.navItem}> <p onClick={() => window.location.href = "/admin-dashboard"} style={{cursor:"pointer"}}>Dashboard</p></div>
         <div style={{...styles.navItem, ...styles.active}}>Users</div>
-        <div style={styles.navItem}>Stations</div>
-        <div style={styles.navItem}>Chargers</div>
-        <div style={styles.navItem}>Bookings</div>
-        <div style={styles.navItem}>Vehicles</div>
+        <div style={styles.navItem}><p onClick={() => window.location.href = "/admin-stations"} style={{cursor:"pointer"}}>Stations</p></div>
+        <div style={styles.navItem}><p onClick={() => window.location.href = "/admin-chargers"} style={{cursor:"pointer"}}>Chargers</p></div>
+        <div style={styles.navItem}><p onClick={() => window.location.href = "/admin-bookings"} style={{cursor:"pointer"}}>Bookings</p></div>
+        <div style={styles.navItem}><p onClick={() => window.location.href = "/admin-vehicles"} style={{cursor:"pointer"}}>Vehicles</p></div>
+        <div style={styles.navItem}><p onClick={() => window.location.href = "/admin-notifications"} style={{cursor:"pointer"}}>Notifications</p></div>
       </div>
 
       {/* MAIN */}
@@ -155,6 +201,9 @@ function AdminUsers() {
                     <button onClick={() => openEdit(u)} style={styles.editBtn}>
                       Edit
                     </button>
+                    <button onClick={() => sendOTP(u)} style={styles.secondaryBtn}>
+                    Reset Password
+                    </button>
                     <button onClick={() => deleteUser(u.id)} style={styles.deleteBtn}>
                       Delete
                     </button>
@@ -200,12 +249,43 @@ function AdminUsers() {
         </div>
       )}
 
+      {showOTPModal && (
+        <div style={styles.overlay}>
+            <div style={styles.modal}>
+            <h3>🔐 Reset Password</h3>
+
+            {!otpVerified ? (
+                <>
+                <input
+                    placeholder="Enter OTP"
+                    value={otp}
+                    onChange={e => setOtp(e.target.value)}
+                />
+                <button onClick={verifyOTP}>Verify OTP</button>
+                </>
+            ) : (
+                <>
+                <input
+                    type="password"
+                    placeholder="New Password"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                />
+                <button onClick={resetPassword}>Update Password</button>
+                </>
+            )}
+
+            <button onClick={() => setShowOTPModal(false)}>Cancel</button>
+            </div>
+        </div>
+        )}
+
     </div>
   );
 }
 
 //////////////////////////////////////////////////
-// 🎨 STYLES (PRO LEVEL)
+//  STYLES (PRO LEVEL)
 //////////////////////////////////////////////////
 
 const styles = {
