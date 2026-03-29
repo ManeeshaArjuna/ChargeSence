@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 
 # ===============================
-# 📩 SMS FUNCTION
+#  SMS FUNCTION
 # ===============================
 def send_sms(phone, message):
     try:
@@ -40,7 +40,7 @@ def send_sms(phone, message):
 
 
 # ===============================
-# 💳 GET CARDS
+#  GET CARDS
 # ===============================
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -51,7 +51,7 @@ def get_cards(request):
 
 
 # ===============================
-# ➕ ADD CARD
+#  ADD CARD
 # ===============================
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -66,7 +66,7 @@ def add_card(request):
 
 
 # ===============================
-# ❌ DELETE CARD
+#  DELETE CARD
 # ===============================
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
@@ -80,7 +80,7 @@ def delete_card(request, id):
 
 
 # ===============================
-# 🎁 REWARD REDEMPTION (FIXED)
+#  REWARD REDEMPTION (FIXED)
 # ===============================
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -96,21 +96,21 @@ def redeem_rewards(request):
         reward = Reward.objects.get(user=request.user)
         wallet = Wallet.objects.get(user=request.user)
 
-        # ❌ validation
+        #  validation
         if points < 100:
             return Response({"error": "Minimum 100 points"}, status=400)
 
         if reward.points < points:
             return Response({"error": "Not enough points"}, status=400)
 
-        # ✅ update
+        #  update
         reward.points -= points
         wallet.balance += points
 
         reward.save()
         wallet.save()
 
-        # 📩 SAFE SMS (won't crash API)
+        #  SAFE SMS (won't crash API)
         try:
             send_sms(
                 request.user.phone_number,
