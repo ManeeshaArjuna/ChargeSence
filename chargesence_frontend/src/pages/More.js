@@ -263,6 +263,12 @@ function VehicleModal() {
 function SettingsModal() {
   const [threshold, setThreshold] = useState(20);
 
+  useEffect(() => {
+    API.get("settings/get/")
+      .then(res => setThreshold(res.data.threshold))
+      .catch(() => console.log("No settings"));
+  }, []);
+
   const save = () => {
     API.post("settings/", { threshold })
       .then(() => alert("Saved"))

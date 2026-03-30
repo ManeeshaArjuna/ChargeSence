@@ -17,6 +17,8 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='USER')
     phone_number = models.CharField(max_length=15, blank=True, null=True)
 
+    threshold = models.IntegerField(default=20)
+
 
 # ---------------- VEHICLE ----------------
 class Vehicle(models.Model):

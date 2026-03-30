@@ -55,7 +55,7 @@ def change_password(request):
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def update_user(request):
+def update_profile(request):
     user = request.user
 
     email = request.data.get("email")

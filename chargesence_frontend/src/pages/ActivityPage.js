@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import API from "../api/api";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 function ActivityPage() {
 
   const [bookings, setBookings] = useState([]);
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
   //////////////////////////////////////////////////
   // LOAD BOOKINGS
@@ -60,6 +63,21 @@ function ActivityPage() {
   };
 
   //////////////////////////////////////////////////
+  // PDF DOWNLOAD
+  //////////////////////////////////////////////////
+  const downloadReceipt = async (booking) => {
+    const element = document.getElementById(`receipt-${booking.id}`);
+    if (!element) return;
+
+    const canvas = await html2canvas(element);
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF();
+    pdf.addImage(imgData, "PNG", 10, 10, 190, 0);
+    pdf.save(`receipt_${booking.id}.pdf`);
+  };
+
+  //////////////////////////////////////////////////
   // STATUS STYLE
   //////////////////////////////////////////////////
   const getStatusStyle = (status) => {
@@ -76,7 +94,7 @@ function ActivityPage() {
   };
 
   //////////////////////////////////////////////////
-  // CARD UI
+  // CARD
   //////////////////////////////////////////////////
   const BookingCard = ({ b, actions }) => (
     <div style={styles.card}>
@@ -103,11 +121,56 @@ function ActivityPage() {
 
       <p style={styles.sub}>Booking Fee: Rs {b.amount}</p>
 
-      {actions && (
-        <div style={styles.actionRow}>
-          {actions}
-        </div>
-      )}
+      <div style={styles.actionRow}>
+        {actions}
+
+        {/* PREVIEW BUTTON */}
+        <button
+          style={styles.buttonSecondary}
+          onClick={() => setSelectedBooking(b)}
+        >
+          📄 Receipt
+        </button>
+      </div>
+
+      {/* HIDDEN RECEIPT TEMPLATE */}
+      <div
+        id={`receipt-${b.id}`}
+        style={{
+          position: "absolute",
+          left: "-9999px",
+          background: "#fff",
+          color: "#000",
+          padding: "20px",
+          width: "300px"
+        }}
+      >
+        <h3>⚡ ChargeSense Receipt</h3>
+
+        <p><b>Station:</b> {b.station}</p>
+        <p><b>Connector:</b> {b.connector}</p>
+        <p><b>Status:</b> {b.status}</p>
+
+        <p><b>Start:</b> {new Date(b.start_time).toLocaleString()}</p>
+
+        {b.end_time && (
+          <p><b>End:</b> {new Date(b.end_time).toLocaleString()}</p>
+        )}
+
+        <hr />
+
+        <p><b>Booking Fee:</b> Rs {b.amount}</p>
+
+        {b.final_amount && (
+          <p><b>Total Paid:</b> Rs {b.final_amount}</p>
+        )}
+
+        <hr />
+
+        <p style={{ fontSize: "12px" }}>
+          Thank you for using ChargeSense 🚀
+        </p>
+      </div>
 
     </div>
   );
@@ -128,17 +191,11 @@ function ActivityPage() {
             b={b}
             actions={
               <>
-                <button
-                  style={styles.buttonPrimary}
-                  onClick={() => completeBooking(b.id)}
-                >
+                <button style={styles.buttonPrimary} onClick={() => completeBooking(b.id)}>
                   Complete
                 </button>
 
-                <button
-                  style={styles.buttonDanger}
-                  onClick={() => cancelBooking(b.id)}
-                >
+                <button style={styles.buttonDanger} onClick={() => cancelBooking(b.id)}>
                   Cancel
                 </button>
               </>
@@ -167,6 +224,49 @@ function ActivityPage() {
         ))}
       </section>
 
+      {/* RECEIPT MODAL */}
+      {selectedBooking && (
+        <div style={styles.overlay}>
+          <div style={styles.modal}>
+            <h3>📄 Receipt Preview</h3>
+
+            <p><b>Station:</b> {selectedBooking.station}</p>
+            <p><b>Connector:</b> {selectedBooking.connector}</p>
+            <p><b>Status:</b> {selectedBooking.status}</p>
+
+            <p><b>Start:</b> {new Date(selectedBooking.start_time).toLocaleString()}</p>
+
+            {selectedBooking.end_time && (
+              <p><b>End:</b> {new Date(selectedBooking.end_time).toLocaleString()}</p>
+            )}
+
+            <hr />
+
+            <p><b>Booking Fee:</b> Rs {selectedBooking.amount}</p>
+
+            {selectedBooking.final_amount && (
+              <p><b>Total Paid:</b> Rs {selectedBooking.final_amount}</p>
+            )}
+
+            <div style={styles.modalActions}>
+              <button
+                style={styles.buttonPrimary}
+                onClick={() => downloadReceipt(selectedBooking)}
+              >
+                ⬇️ Download
+              </button>
+
+              <button
+                style={styles.buttonDanger}
+                onClick={() => setSelectedBooking(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* NAV */}
       <div style={styles.nav}>
         <p onClick={() => (window.location.href = "/dashboard")}>Home</p>
@@ -181,7 +281,7 @@ function ActivityPage() {
 }
 
 //////////////////////////////////////////////////
-// STYLES (UPGRADED)
+// STYLES
 //////////////////////////////////////////////////
 
 const styles = {
@@ -194,63 +294,29 @@ const styles = {
     color: "#fff"
   },
 
-  title: {
-    textAlign: "center",
-    marginBottom: "20px"
-  },
+  title: { textAlign: "center", marginBottom: "20px" },
 
-  sectionTitle: {
-    marginTop: "20px",
-    marginBottom: "10px",
-    fontSize: "16px",
-    opacity: 0.9
-  },
+  sectionTitle: { marginTop: "20px", marginBottom: "10px", fontSize: "16px", opacity: 0.9 },
 
-  empty: {
-    opacity: 0.6,
-    fontSize: "14px"
-  },
+  empty: { opacity: 0.6, fontSize: "14px" },
 
   card: {
     background: "rgba(255,255,255,0.08)",
     backdropFilter: "blur(14px)",
     padding: "18px",
     borderRadius: "18px",
-    marginBottom: "12px",
-    boxShadow: "0 8px 30px rgba(0,0,0,0.25)",
-    border: "1px solid rgba(255,255,255,0.1)"
+    marginBottom: "12px"
   },
 
-  cardHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center"
-  },
+  cardHeader: { display: "flex", justifyContent: "space-between" },
 
-  statusBadge: {
-    padding: "5px 10px",
-    borderRadius: "20px",
-    fontSize: "12px",
-    fontWeight: "bold"
-  },
+  statusBadge: { padding: "5px 10px", borderRadius: "20px", fontSize: "12px" },
 
-  sub: {
-    fontSize: "13px",
-    opacity: 0.8,
-    marginTop: "5px"
-  },
+  sub: { fontSize: "13px", opacity: 0.8 },
 
-  amount: {
-    fontWeight: "bold",
-    marginTop: "8px",
-    color: "#00e676"
-  },
+  amount: { fontWeight: "bold", color: "#00e676" },
 
-  actionRow: {
-    display: "flex",
-    gap: "10px",
-    marginTop: "12px"
-  },
+  actionRow: { display: "flex", gap: "10px", marginTop: "12px" },
 
   buttonPrimary: {
     flex: 1,
@@ -268,8 +334,40 @@ const styles = {
     borderRadius: "20px",
     border: "none",
     background: "#ff5252",
-    color: "#fff",
-    fontWeight: "bold"
+    color: "#fff"
+  },
+
+  buttonSecondary: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "20px",
+    border: "1px solid #fff",
+    background: "transparent",
+    color: "#fff"
+  },
+
+  overlay: {
+    position: "fixed",
+    top: 0, left: 0,
+    width: "100%", height: "100%",
+    background: "rgba(0,0,0,0.7)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center"
+  },
+
+  modal: {
+    background: "#fff",
+    color: "#000",
+    padding: "20px",
+    borderRadius: "16px",
+    width: "300px"
+  },
+
+  modalActions: {
+    display: "flex",
+    gap: "10px",
+    marginTop: "15px"
   },
 
   nav: {
@@ -278,16 +376,10 @@ const styles = {
     width: "100%",
     display: "flex",
     justifyContent: "space-around",
-    background: "rgba(0,0,0,0.4)",
-    backdropFilter: "blur(15px)",
-    padding: "14px",
-    borderTop: "1px solid rgba(255,255,255,0.1)"
+    padding: "14px"
   },
 
-  active: {
-    color: "#00e676",
-    fontWeight: "bold"
-  }
+  active: { color: "#00e676", fontWeight: "bold" }
 };
 
 export default ActivityPage;

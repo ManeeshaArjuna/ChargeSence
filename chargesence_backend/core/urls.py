@@ -1,7 +1,8 @@
 from django.urls import path
 
 from core.views.booking_view import available_slots, pay_booking, user_bookings
-from core.views.user_views import CustomLoginView, change_password, register_user, reset_password, update_user, verify_otp
+from core.views.settings import get_settings, save_settings
+from core.views.user_views import CustomLoginView, change_password, register_user, reset_password, update_profile,  verify_otp
 from core.views.vehicle_views import create_vehicle, delete_vehicle, list_vehicles
 from core.views.station_views import list_stations, station_chargers
 
@@ -90,7 +91,7 @@ urlpatterns = [
     path('complete-booking/', complete_booking),
     path('cancel-booking/', cancel_booking),
 
-    path('user/update/', update_user),
+    path('user/update/', update_profile),
 
     path('vehicles/<int:id>/', delete_vehicle),
 
@@ -136,5 +137,8 @@ urlpatterns = [
     path("admin/vehicles/<int:id>/delete/", delete_vehicle),
 
     path("admin/notifications/send/", send_notifications),
+
+    path("settings/", save_settings),
+    path("settings/get/", get_settings),
 
 ]
