@@ -260,7 +260,7 @@ function Home() {
         </div>
       )}
 
-      {/* ===== ORIGINAL UI ===== */}
+      {/* ===== UI ===== */}
 
       <div style={styles.header}>
         <h2 style={styles.logo}>⚡ ChargeSence</h2>
@@ -299,20 +299,6 @@ function Home() {
         >
           Redeem Rewards
         </button>
-      </div>
-
-      <div style={styles.card}>
-        <h3>Favorite Chargers</h3>
-
-        {data.favorites && data.favorites.length > 0 ? (
-          data.favorites.map((fav, index) => (
-            <p key={index}>{fav.name}</p>
-          ))
-        ) : (
-          <p>No favorites yet</p>
-        )}
-
-        <button style={styles.button}>+ Add Favorite</button>
       </div>
 
       <div style={styles.card}>
@@ -374,7 +360,7 @@ function Home() {
 }
 
 //////////////////////////////////////////////////
-// STYLES (ADDED MODAL STYLES ONLY)
+// STYLES
 //////////////////////////////////////////////////
 
 const styles = {

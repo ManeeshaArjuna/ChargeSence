@@ -29,6 +29,7 @@ def all_chargers(request):
             "connector": c.connector_type,
             "power": float(c.power_kw),
             "cost": float(c.unit_cost),
+            "available": c.is_available 
         })
 
     return Response(list(stations.values()))

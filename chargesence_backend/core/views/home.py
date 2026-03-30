@@ -1,3 +1,5 @@
+import requests
+import os
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -6,10 +8,18 @@ from core.models import Wallet, Reward, Charger
 
 import math
 
+def get_real_distance(lat1, lon1, lat2, lon2):
+    try:
+        api_key = os.getenv("GOOGLE_MAPS_API_KEY")
 
-# Distance calculation
-def calculate_distance(lat1, lon1, lat2, lon2):
-    return math.sqrt((lat1 - lat2) ** 2 + (lon1 - lon2) ** 2)
+        url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={lat1},{lon1}&destinations={lat2},{lon2}&key={api_key}"
+
+        res = requests.get(url).json()
+
+        return res["rows"][0]["elements"][0]["distance"]["value"] / 1000  # km
+
+    except:
+        return 9999
 
 
 @api_view(['GET'])
@@ -18,11 +28,11 @@ def home_dashboard(request):
     try:
         user = request.user
 
-        # ✅ Wallet + Reward (existing system)
+        #  Wallet + Reward (existing system)
         wallet, _ = Wallet.objects.get_or_create(user=user)
         reward, _ = Reward.objects.get_or_create(user=user)
 
-        # 🌍 User location
+        #  User location
         user_lat = request.query_params.get("lat")
         user_lng = request.query_params.get("lng")
 
@@ -41,7 +51,7 @@ def home_dashboard(request):
 
                 if station.latitude is not None and station.longitude is not None:
 
-                    distance = calculate_distance(
+                    distance = get_real_distance(
                         user_lat,
                         user_lng,
                         station.latitude,
@@ -55,6 +65,8 @@ def home_dashboard(request):
                             "phone": station.telephone,
                             "map": station.google_map_link,
                             "distance": distance,
+                            "latitude": station.latitude,
+                            "longitude": station.longitude,
                             "chargers": []
                         }
 
@@ -62,7 +74,9 @@ def home_dashboard(request):
                         "connector": c.connector_type,
                         "power": float(c.power_kw),
                         "cost": float(c.unit_cost),
-                        "available": True  # ✅ always available (your logic)
+                        "available": True,
+                        "latitude": station.latitude,
+                        "longitude": station.longitude,
                     })
 
             stations = list(station_dict.values())
@@ -72,7 +86,7 @@ def home_dashboard(request):
             "name": user.username,
             "balance": float(wallet.balance),
 
-            # 🎁 REWARD FIX (IMPORTANT)
+            #  REWARD
             "rewards": reward.points,
 
             "favorites": [],
