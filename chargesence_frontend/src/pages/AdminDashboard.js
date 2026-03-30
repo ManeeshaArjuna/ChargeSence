@@ -7,6 +7,15 @@ import {
 
 function AdminDashboard() {
 
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+
+    if (role !== "ADMIN") {
+      alert("Unauthorized access");
+      window.location.href = "/dashboard";
+    }
+  }, []);
+
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
@@ -62,6 +71,19 @@ function AdminDashboard() {
         <NavItem label="Bookings" link="/admin-bookings" />
         <NavItem label="Vehicles" link="/admin-vehicles" />
         <NavItem label="Notifications" link="/admin-notifications" />
+        <NavItem label="ChargeSence Home" link="/dashboard" />
+        <div style={{ marginTop: "auto" }}>
+          <div
+            style={{ ...styles.navItem, background: "#ff5252", color: "#fff" }}
+            onClick={() => {
+              localStorage.removeItem("token");
+              localStorage.removeItem("role");
+              window.location.href = "/";
+            }}
+          >
+             Logout
+          </div>
+        </div>
       </div>
 
       {/* MAIN */}

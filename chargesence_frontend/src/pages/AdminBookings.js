@@ -60,6 +60,19 @@ function AdminBookings() {
         <div style={{...styles.navItem, ...styles.active}}>Bookings</div>
         <div style={styles.navItem} onClick={()=>window.location.href="/admin-vehicles"}>Vehicles</div>
         <div style={styles.navItem} onClick={()=>window.location.href="/admin-notifications"}>Notifications</div>
+        <div style={styles.navItem} onClick={()=>window.location.href="/dashboard"}>ChargeSence Home</div>
+        <div style={{ marginTop: "auto" }}>
+          <div
+            style={{ ...styles.navItem, background: "#ff5252", color: "#fff" }}
+            onClick={() => {
+              localStorage.removeItem("token");
+              localStorage.removeItem("role");
+              window.location.href = "/";
+            }}
+          >
+             Logout
+          </div>
+        </div>
       </div>
 
       {/* MAIN */}

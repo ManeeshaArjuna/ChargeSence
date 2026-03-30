@@ -30,17 +30,15 @@ function Login() {
         password,
       });
 
-      const { access, is_superuser } = response.data;
+  const { access, is_superuser } = response.data;
 
-      localStorage.setItem("token", access);
+  localStorage.setItem("token", access);
 
-      alert("Login successful!");
+  localStorage.setItem("role", is_superuser ? "ADMIN" : "USER");
 
-      if (is_superuser) {
-        navigate("/admin-dashboard");
-      } else {
-        navigate("/dashboard");
-      }
+  alert("Login successful!");
+
+  navigate("/dashboard");
 
     } catch (error) {
       console.log("Login Error:", error.response?.data);

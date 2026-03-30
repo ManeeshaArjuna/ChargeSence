@@ -388,12 +388,17 @@ const styles = {
   nav: {
     position: "fixed",
     bottom: 0,
-    width: "100%",
+    left: 0,
+    right: 0,
+    width: "100vw",
     display: "flex",
     justifyContent: "space-around",
-    background: "rgba(255,255,255,0.1)",
-    backdropFilter: "blur(10px)",
-    padding: "12px"
+    padding: "14px 0",
+    margin: 0,
+    boxSizing: "border-box",
+    background: "rgba(227, 181, 18, 0.4)",
+    backdropFilter: "blur(15px)",
+    borderTop: "1px solid rgba(255,255,255,0.1)"
   },
 
   active: {

@@ -3,6 +3,13 @@ import API from "../api/api";
 
 function More() {
 
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("role");
+    setRole(storedRole);
+  }, []);
+
   const [user, setUser] = useState({});
   const [activeModal, setActiveModal] = useState(null);
 
@@ -40,6 +47,13 @@ function More() {
         <MenuBtn label="🚗 Vehicle Management" onClick={() => setActiveModal("vehicles")} />
         <MenuBtn label="⚙️ Settings" onClick={() => setActiveModal("settings")} />
         <MenuBtn label="📄 Terms & Conditions" onClick={() => setActiveModal("terms")} />
+
+        {role === "ADMIN" && (
+        <MenuBtn
+            label="🛠 Admin Dashboard"
+            onClick={() => (window.location.href = "/admin-dashboard")}
+          />
+        )}
         <MenuBtn label="🚪 Logout" onClick={logout} danger />
       </div>
 
@@ -300,9 +314,38 @@ function SettingsModal() {
 function TermsModal() {
   return (
     <>
-      <h3>📄 Terms</h3>
-      <p>• Charging must be completed within booking time</p>
-      <p>• Late fees apply</p>
+      <h3>📄 Terms & Conditions</h3>
+
+      <h4>⚡ Booking Policy</h4>
+      <p>• Users must provide accurate vehicle and battery details to receive optimal charging recommendations.</p>
+      <p>• Charging slots are reserved based on the selected time and duration.</p>
+      <p>• Users must arrive within the reserved time window; otherwise, the booking may be cancelled or reassigned.</p>
+      <p>• Failure to arrive on time may result in loss of the reserved slot.</p>
+
+      <h4>💳 Payment Policy</h4>
+      <p>• All bookings must be paid in advance using the in-app wallet system.</p>
+      <p>• Final charging cost may vary depending on actual energy consumption during the charging session.</p>
+      <p>• Wallet balances must be sufficient before confirming a booking.</p>
+
+      <h4>🔌 Charging & Usage</h4>
+      <p>• Users are responsible for selecting compatible charger connectors for their vehicles.</p>
+      <p>• Charging must be completed within the booked duration unless extended through the system.</p>
+      <p>• Additional fees may apply for exceeding the reserved charging time.</p>
+
+      <h4>📍 Smart Recommendations</h4>
+      <p>• The system provides charger recommendations based on user inputs, vehicle data, and predictive models.</p>
+      <p>• Recommendations are estimates and may be affected by real-world conditions such as traffic or charger availability.</p>
+
+      <h4>⚠️ User Responsibility</h4>
+      <p>• Users must use the system responsibly and avoid making false or duplicate bookings.</p>
+      <p>• Misuse of the platform may result in account suspension or restricted access.</p>
+
+      <h4>🚫 Liability Disclaimer</h4>
+      <p>• ChargeSense is not responsible for delays, inaccuracies, or disruptions caused by external factors such as traffic, weather, or third-party services.</p>
+      <p>• The platform provides guidance and booking services but does not guarantee charger availability at all times.</p>
+
+      <h4>✅ Acceptance</h4>
+      <p>• By using ChargeSense, users agree to comply with all terms and conditions stated above.</p>
     </>
   );
 }
@@ -377,7 +420,9 @@ const styles = {
     padding: "20px",
     borderRadius: "20px",
     width: "90%",
-    maxWidth: "400px"
+    maxWidth: "400px",
+    maxHeight: "80vh", 
+    overflowY: "auto" 
   },
 
   card: {
@@ -429,12 +474,16 @@ const styles = {
   nav: {
     position: "fixed",
     bottom: 0,
-    width: "100%",
+    left: 0,
+    right: 0,
+    width: "100vw",
     display: "flex",
     justifyContent: "space-around",
-    background: "rgba(0,0,0,0.4)",
+    padding: "14px 0",
+    margin: 0,
+    boxSizing: "border-box",
+    background: "rgba(227, 181, 18, 0.4)",
     backdropFilter: "blur(15px)",
-    padding: "14px",
     borderTop: "1px solid rgba(255,255,255,0.1)"
   },
 
