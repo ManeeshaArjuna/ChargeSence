@@ -180,18 +180,22 @@ const styles = {
   },
 
   input: {
-    width: "95%",
+    width: "calc(100% - 24px)",
     padding: "12px",
     marginBottom: "12px",
     borderRadius: "10px",
     border: "none",
     outline: "none",
+    margin: "10px 12px",
+    boxSizing: "border-box"
   },
 
   phoneRow: {
     display: "flex",
     gap: "10px",
     marginBottom: "12px",
+    margin: "10px 12px",
+    boxSizing: "border-box"
   },
 
   select: {
@@ -205,10 +209,12 @@ const styles = {
     padding: "12px",
     borderRadius: "10px",
     border: "none",
+    margin: "10px 12px",
+    boxSizing: "border-box"
   },
 
   button: {
-    width: "100%",
+    width: "calc(100% - 24px)",
     padding: "12px",
     borderRadius: "25px",
     border: "none",
@@ -216,6 +222,8 @@ const styles = {
     fontWeight: "bold",
     cursor: "pointer",
     transition: "0.3s",
+    margin: "10px 12px",
+    boxSizing: "border-box"
   },
 
   buttonHover: {

@@ -342,25 +342,29 @@ const styles = {
   },
 
   input: {
-    width: "100%",
+    width: "calc(100% - 24px)",
     padding: "14px",
     marginBottom: "12px",
     borderRadius: "14px",
     border: "1px solid rgba(255,255,255,0.2)",
     background: "rgba(255,255,255,0.08)",
     color: "#fff",
-    outline: "none"
+    outline: "none",
+    margin: "10px 12px",
+    boxSizing: "border-box"
   },
 
   button: {
-    width: "100%",
+    width: "calc(100% - 24px)",
     padding: "14px",
     borderRadius: "30px",
     border: "none",
     background: "linear-gradient(135deg, #00e676, #00c6ff)",
     color: "#000",
     fontWeight: "bold",
-    marginTop: "10px"
+    marginTop: "10px",
+    margin: "10px 12px",
+    boxSizing: "border-box"
   },
 
   nav: {

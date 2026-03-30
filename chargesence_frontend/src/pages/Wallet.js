@@ -345,33 +345,37 @@ const styles = {
     boxShadow: "0 6px 20px rgba(0,0,0,0.3)"
   },
 
-  input: {
-    width: "100%",
-    padding: "12px",
-    borderRadius: "12px",
-    border: "none",
-    marginBottom: "10px"
-  },
+input: {
+  width: "calc(100% - 24px)",
+  padding: "12px",
+  borderRadius: "12px",
+  border: "none",
+  margin: "10px 12px",
+  boxSizing: "border-box"
+},
 
-  button: {
-    width: "100%",
-    padding: "12px",
-    borderRadius: "25px",
-    background: "#00e676",
-    border: "none",
-    fontWeight: "bold",
-    color: "#000"
-  },
+button: {
+  width: "calc(100% - 24px)",
+  padding: "12px",
+  borderRadius: "25px",
+  background: "#00e676",
+  border: "none",
+  fontWeight: "bold",
+  color: "#000",
+  margin: "10px 12px",
+  boxSizing: "border-box"
+},
 
-  buttonSecondary: {
-    width: "100%",
-    padding: "12px",
-    borderRadius: "25px",
-    border: "1px solid #fff",
-    background: "transparent",
-    color: "#fff",
-    marginBottom: "10px"
-  },
+buttonSecondary: {
+  width: "calc(100% - 24px)",
+  padding: "12px",
+  borderRadius: "25px",
+  border: "1px solid #fff",
+  background: "transparent",
+  color: "#fff",
+  margin: "10px 12px",
+  boxSizing: "border-box"
+},
 
   tx: {
     background: "rgba(255,255,255,0.1)",

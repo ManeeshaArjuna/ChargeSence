@@ -388,7 +388,8 @@ const styles = {
     padding: "12px",
     borderRadius: "12px",
     marginBottom: "15px",
-    textAlign: "center"
+    textAlign: "center",
+    margin: "10px 12px",
   },
 
   card: {
@@ -397,7 +398,8 @@ const styles = {
     padding: "15px",
     borderRadius: "16px",
     marginBottom: "15px",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.2)"
+    boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+    margin: "10px 12px"
   },
 
   amount: {
@@ -433,7 +435,8 @@ const styles = {
     borderRadius: "16px",
     marginBottom: "15px",
     color: "#000",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.3)"
+    boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+    margin: "10px 12px"
   },
 
   rewardHeader: {

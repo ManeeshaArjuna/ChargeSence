@@ -433,33 +433,39 @@ const styles = {
   },
 
   input: {
-    width: "95%",
+    width: "calc(100% - 24px)",
     padding: "12px",
     borderRadius: "12px",
     border: "1px solid rgba(255,255,255,0.2)",
     background: "rgba(255,255,255,0.05)",
     color: "#fff",
-    marginBottom: "10px"
+    marginBottom: "10px",
+    margin: "10px 12px",
+    boxSizing: "border-box"
   },
 
   primaryBtn: {
-    width: "100%",
+    width: "calc(100% - 24px)",
     padding: "12px",
     borderRadius: "25px",
     border: "none",
     background: "linear-gradient(135deg, #00e676, #00c6ff)",
     color: "#000",
-    fontWeight: "bold"
+    fontWeight: "bold",
+    margin: "10px 12px",
+    boxSizing: "border-box"
   },
 
   secondaryBtn: {
-    width: "100%",
+    width: "calc(100% - 24px)",
     padding: "10px",
     borderRadius: "20px",
     border: "1px solid #fff",
     background: "transparent",
     color: "#fff",
-    marginTop: "10px"
+    marginTop: "10px",
+    margin: "10px 12px",
+    boxSizing: "border-box"
   },
 
   dangerBtn: {

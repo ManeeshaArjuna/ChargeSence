@@ -91,7 +91,7 @@ def home_dashboard(request):
 
             "favorites": [],
             "promotions": [
-                "⚡ 20% OFF fast charging",
+                "⚡ Find the best charger based on your battery & route",
                 "🔋 Free charging for 10 mins"
             ],
             "stations": stations
