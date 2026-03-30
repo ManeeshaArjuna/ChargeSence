@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import API from "../api/api";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import {
   GoogleMap,
@@ -12,11 +13,14 @@ import {
 
 function Booking() {
 
+  const location = useLocation();
+  const navData = location.state || {};
+
   const navigate = useNavigate();
 
-  const [battery, setBattery] = useState("");
-  const [start, setStart] = useState("");
-  const [destination, setDestination] = useState("");
+  const [battery, setBattery] = useState(navData.battery || "");
+  const [start, setStart] = useState(navData.start || "");
+  const [destination, setDestination] = useState(navData.destination || "");
   const [duration, setDuration] = useState("");
 
   const [directions, setDirections] = useState(null);
@@ -32,7 +36,13 @@ function Booking() {
   const [destAuto, setDestAuto] = useState(null);
 
   const [vehicles, setVehicles] = useState([]);
-  const [selectedVehicle, setSelectedVehicle] = useState("");
+  const [selectedVehicle, setSelectedVehicle] = useState(navData.vehicle_id || "");
+
+  useEffect(() => {
+    if (navData.startCoords) {
+      setStartCoords(navData.startCoords);
+    }
+  }, []);
 
   //////////////////////////////////////////////////
   // USER LOCATION
@@ -101,6 +111,8 @@ function Booking() {
   //////////////////////////////////////////////////
   // FIND BEST CHARGER
   //////////////////////////////////////////////////
+  // REPLACE ONLY THIS FUNCTION IN YOUR FILE
+
   const findBestCharger = () => {
 
     if (!battery || chargers.length === 0) {
@@ -113,31 +125,41 @@ function Booking() {
       return;
     }
 
-    const selected = vehicles.find(v => v.id === selectedVehicle);
+    if (!selectedVehicle) {
+      alert("Please select a vehicle");
+      return;
+    }
 
     API.post("recommend/", {
-      battery: battery,
-      range: 400,
-      chargers: chargers,
-      connector: selected ? selected.connector : null,
-      user_lat: startCoords.lat,
-      user_lng: startCoords.lng
+      vehicle_id: selectedVehicle,
+      start_lat: startCoords.lat,
+      start_lon: startCoords.lng,
+      battery: battery
     })
       .then((res) => {
 
-        const best = res.data.best;
-        const others = res.data.others || [];
+        const chargers = res.data.chargers || [];
+
+        if (chargers.length === 0) {
+          alert("No suitable chargers found");
+          return;
+        }
+
+        const best = chargers[0];
+        const others = chargers.slice(1);
 
         navigate("/recommendation", {
           state: {
-            best: best
-              ? {
-                  ...best,
-                  start: start,
-                  destination: destination
-                }
-              : null,
-            others: others
+            best: {
+              ...best,
+              start: start,
+              destination: destination
+            },
+            others: others,
+            battery: battery,
+            range: res.data.max_range,
+            vehicle_id: selectedVehicle,
+            startCoords
           }
         });
 

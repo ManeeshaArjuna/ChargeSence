@@ -93,6 +93,17 @@ function ActivityPage() {
     }
   };
 
+  const openMap = (b) => {
+    if (b.map_url) {
+      window.open(b.map_url, "_blank");
+    } else {
+      alert("Location not available");
+    }
+
+  const url = `https://www.google.com/maps?q=${b.latitude},${b.longitude}`;
+  window.open(url, "_blank");
+};
+
   //////////////////////////////////////////////////
   // CARD
   //////////////////////////////////////////////////
@@ -102,12 +113,24 @@ function ActivityPage() {
       <div style={styles.cardHeader}>
         <h4 style={{ margin: 0 }}>⚡ {b.station}</h4>
 
-        <span style={{
-          ...styles.statusBadge,
-          ...getStatusStyle(b.status)
-        }}>
-          {b.status}
-        </span>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          
+          {/* 📍 MAP BUTTON */}
+          <button
+            style={styles.mapBtn}
+            onClick={() => openMap(b)}
+            title="Open in Google Maps"
+          >
+            📍
+          </button>
+
+          <span style={{
+            ...styles.statusBadge,
+            ...getStatusStyle(b.status)
+          }}>
+            {b.status}
+          </span>
+        </div>
       </div>
 
       <p style={styles.sub}>🔌 {b.connector}</p>
@@ -377,6 +400,17 @@ const styles = {
     display: "flex",
     justifyContent: "space-around",
     padding: "14px"
+  },
+
+  mapBtn: {
+    border: "none",
+    background: "rgba(255,255,255,0.15)",
+    backdropFilter: "blur(10px)",
+    borderRadius: "50%",
+    width: "32px",
+    height: "32px",
+    fontSize: "16px",
+    cursor: "pointer"
   },
 
   active: { color: "#00e676", fontWeight: "bold" }

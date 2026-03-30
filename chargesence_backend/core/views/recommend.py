@@ -1,124 +1,193 @@
 import joblib
-import os
 import requests
-
+import os
+from core.models import Charger, Vehicle
+from math import radians, sin, cos, sqrt, atan2
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from dotenv import load_dotenv
 
-load_dotenv()
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "ml", "ml_model.pkl"))
-
-try:
-    model = joblib.load(MODEL_PATH)
-except:
-    model = None
-
-GOOGLE_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+model = joblib.load("ml/ml_model.pkl")
 
 
-# ==============================
-# GOOGLE DISTANCE MATRIX (FINAL)
-# ==============================
-def get_distance_eta(user_lat, user_lng, lat, lng):
+def get_eta(origin_lat, origin_lng, dest_lat, dest_lng):
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+
+    url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin_lat},{origin_lng}&destinations={dest_lat},{dest_lng}&key={api_key}"
+
+    res = requests.get(url).json()
+
     try:
-        url = "https://maps.googleapis.com/maps/api/distancematrix/json"
+        return res["rows"][0]["elements"][0]["duration"]["value"] / 60  # minutes
+    except:
+        return None
 
-        params = {
-            "origins": f"{float(user_lat)},{float(user_lng)}",
-            "destinations": f"{float(lat)},{float(lng)}",
-            "key": GOOGLE_API_KEY,
-        }
+##################################################
+# HAVERSINE
+##################################################
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
 
-        res = requests.get(url, params=params).json()
+    a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
-        el = res["rows"][0]["elements"][0]
-
-        if el["status"] == "OK":
-            distance = el["distance"]["value"] / 1000
-            eta = el["duration"]["value"] / 60
-
-            return round(distance, 2), round(eta, 1)
-
-    except Exception as e:
-        print("Distance API error:", e)
-
-    return None, None
+    return R * c
 
 
-# ==============================
-# RECOMMEND LOGIC
-# ==============================
-def recommend_chargers(chargers, battery, vehicle_range, vehicle_connector, user_lat, user_lng):
+##################################################
+# MAIN FUNCTION
+##################################################
+def recommend_chargers(user, vehicle_id, start_lat, start_lon, user_battery):
+
+    vehicle = Vehicle.objects.get(id=vehicle_id)
+
+    battery_capacity = float(vehicle.battery_capacity_kwh)
+    efficiency = float(vehicle.efficiency_wh_per_km) / 1000
+    connector = vehicle.connector_type
+    threshold = float(user.threshold)
+
+    available_energy = (user_battery / 100) * battery_capacity
+    reserve_energy = (threshold / 100) * battery_capacity
+
+    usable_energy = max(available_energy - reserve_energy, 0)
+    max_range = usable_energy / efficiency
+
+    chargers = Charger.objects.filter(
+        connector_type=connector,
+        is_available=True
+    )
 
     results = []
-    max_distance = (battery / 100) * vehicle_range
 
-    for c in chargers:
-        try:
-            connectors = [ch["connector"] for ch in c["chargers"]]
+    for charger in chargers:
 
-            if vehicle_connector and vehicle_connector not in connectors:
-                continue
+        if charger.station.latitude is None:
+            continue
 
-            real_dist, eta = get_distance_eta(
-                user_lat, user_lng,
-                c["lat"], c["lng"]
-            )
+        lat = charger.station.latitude
+        lng = charger.station.longitude
 
-            #  REMOVE FAKE FALLBACK
-            if real_dist is None:
-                continue
+        distance = haversine(start_lat, start_lon, lat, lng)
 
-            power = float(c["power"])
-            cost = float(c["cost"])
+        if distance > max_range:
+            continue
 
-            if model:
-                prob = model.predict_proba([[real_dist, cost, power, battery]])[0][1]
-            else:
-                prob = 0.5
+        remaining_range = max_range - distance
 
-            score = prob
-            score -= real_dist * 0.01
-            score -= cost * 0.002
-            score += power * 0.003
+        cost = float(charger.unit_cost)
+        power = float(charger.power_kw)
 
-            results.append({
-                **c,
-                "distance": real_dist,
-                "eta": eta,
-                "score": float(score)
-            })
+        ##################################################
+        # ETA (simple estimate)
+        ##################################################
+        eta = get_eta(start_lat, start_lon, lat, lng)
 
-        except Exception as e:
-            print("Charger error:", e)
+        if eta is None:
+            eta = (distance / 40) * 60 
 
-    results.sort(key=lambda x: x["score"], reverse=True)
-    return results
+        ##################################################
+        # ML
+        ##################################################
+        features = [[distance, cost, power, user_battery, remaining_range]]
+        prob = model.predict_proba(features)[0][1]
+
+        ##################################################
+        #  IMPROVED SCORING (KEY FIX)
+        ##################################################
+        score = prob
+
+        #  URGENCY LOGIC (VERY IMPORTANT)
+        urgency = max(0, (threshold + 10 - user_battery))
+
+        score += urgency * (1 / (distance + 1)) * 5
+
+        ##################################################
+        #  SMART RANGE TARGET LOGIC (NEW CORE)
+        ##################################################
+
+        #  Ideal charging point = 75% of max range
+        target_distance = max_range * 0.75
+
+        # distance difference from ideal
+        distance_diff = abs(distance - target_distance)
+
+        # closer to target → higher score
+        score += 5 / (distance_diff + 1)
+
+        #  avoid too near chargers
+        if distance < max_range * 0.3:
+            score -= 0.5
+
+        #  avoid too far chargers
+        if distance > max_range * 0.9:
+            score -= 1
+
+        # Urgency override (low battery users)
+        if user_battery < 35:
+            score += (1 / (distance + 1)) * 4
+
+        score -= cost * 0.002
+        score += power * 0.005
+
+        # safety penalty
+        if remaining_range < 10:
+            score -= 0.5
+
+        ##################################################
+        # BATTERY %
+        ##################################################
+        energy_used = distance * efficiency
+        battery_drop = (energy_used / battery_capacity) * 100
+        estimated_battery = max(user_battery - battery_drop, 0)
+
+        results.append({
+            "id": charger.id,
+            "station_name": charger.station.name,
+            "connector": charger.connector_type,
+            "distance": round(distance, 2),
+            "cost": cost,
+            "power": power,
+            "lat": lat,
+            "lng": lng,
+            "eta": round(eta),
+            "remaining_range": round(remaining_range, 2),
+            "estimated_battery": round(estimated_battery, 1),
+            "is_risky": remaining_range < 10,
+            "score": score,
+            "is_best": False
+        })
+
+    results = sorted(results, key=lambda x: x["score"], reverse=True)
+
+    if results:
+        results[0]["is_best"] = True
+
+    return {
+        "chargers": results[:5],
+        "max_range": round(max_range, 2)
+    }
 
 
-# ==============================
-# API
-# ==============================
 @api_view(['POST'])
 def recommend_api(request):
 
-    chargers = request.data.get("chargers", [])
-    battery = float(request.data.get("battery", 20))
-    vehicle_range = float(request.data.get("range", 400))
-    connector = request.data.get("connector")
+    user = request.user
 
-    #  FIX TYPE
-    user_lat = float(request.data.get("user_lat"))
-    user_lng = float(request.data.get("user_lng"))
+    vehicle_id = request.data.get("vehicle_id")
+    start_lat = request.data.get("start_lat")
+    start_lon = request.data.get("start_lon")
+    battery = request.data.get("battery")
 
-    ranked = recommend_chargers(
-        chargers, battery, vehicle_range, connector, user_lat, user_lng
+    if not all([vehicle_id, start_lat, start_lon, battery]):
+        return Response({"error": "Missing data"}, status=400)
+
+    results = recommend_chargers(
+        user=user,
+        vehicle_id=vehicle_id,
+        start_lat=float(start_lat),
+        start_lon=float(start_lon),
+        user_battery=float(battery)
     )
 
-    return Response({
-        "best": ranked[0] if ranked else None,
-        "others": ranked[1:]
-    })
+    return Response(results)

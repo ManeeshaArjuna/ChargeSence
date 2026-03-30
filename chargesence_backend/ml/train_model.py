@@ -1,32 +1,64 @@
 import random
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 import joblib
 
 data = []
 
-for i in range(500):
-    distance = random.uniform(1, 20)
-    cost = random.uniform(20, 100)
+for i in range(1000):
+
+    distance = random.uniform(1, 30)
+    cost = random.uniform(20, 120)
     power = random.uniform(10, 150)
-    battery = random.uniform(10, 80)
+    battery = random.uniform(10, 90)
 
-    score = (distance * 0.5) + (cost * 0.2) - (power * 0.3)
+    remaining_range = random.uniform(0, 50)
 
-    best = 1 if score < 20 else 0
+    # RULE-BASED LABEL (SMART)
+    score = 0
 
-    data.append([distance, cost, power, battery, best])
+    # prefer reachable chargers
+    if remaining_range > 5:
+        score += 2
+
+    # prefer closer if battery low
+    if battery < 40:
+        score -= distance * 0.2
+    else:
+        score -= distance * 0.05
+
+    # prefer fast chargers
+    score += power * 0.05
+
+    # prefer cheaper
+    score -= cost * 0.02
+
+    best = 1 if score > 0 else 0
+
+    data.append([
+        distance,
+        cost,
+        power,
+        battery,
+        remaining_range,
+        best
+    ])
 
 df = pd.DataFrame(data, columns=[
-    "distance", "cost", "power", "battery", "best"
+    "distance",
+    "cost",
+    "power",
+    "battery",
+    "remaining_range",
+    "best"
 ])
 
-X = df[["distance", "cost", "power", "battery"]]
+X = df.drop("best", axis=1)
 y = df["best"]
 
-model = LogisticRegression()
+model = RandomForestClassifier()
 model.fit(X, y)
 
 joblib.dump(model, "ml_model.pkl")
 
-print("Model trained & saved ✅")
+print("🔥 New model trained!")

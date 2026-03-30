@@ -23,6 +23,30 @@ function Recommendation() {
   const [secondRoute, setSecondRoute] = useState(null);
 
   //////////////////////////////////////////////////
+  // STATE
+  //////////////////////////////////////////////////
+  const [battery, setBattery] = useState(0);
+  const [range, setRange] = useState(0);
+
+  useEffect(() => {
+    if (data?.battery) {
+      setBattery(data.battery);
+      localStorage.setItem("battery", data.battery);
+    } else {
+      const savedBattery = localStorage.getItem("battery");
+      if (savedBattery) setBattery(Number(savedBattery));
+    }
+
+    if (data?.range) {
+      setRange(data.range);
+      localStorage.setItem("range", data.range);
+    } else {
+      const savedRange = localStorage.getItem("range");
+      if (savedRange) setRange(Number(savedRange));
+    }
+  }, [data]);
+
+  //////////////////////////////////////////////////
   // CENTER MAP
   //////////////////////////////////////////////////
   useEffect(() => {
@@ -64,17 +88,39 @@ function Recommendation() {
 
   }, [best, mapLoaded]);
 
+  //////////////////////////////////////////////////
+  // ETA
+  //////////////////////////////////////////////////
   const getETA = (charger) => Math.ceil(charger?.eta || 0);
 
+  //////////////////////////////////////////////////
+  // NAVIGATION
+  //////////////////////////////////////////////////
   const goToBooking = (charger) => {
     navigate("/bookingpage", {
       state: {
-        charger,
+        charger: {
+          ...charger,
+          connector: charger.connector || charger.chargers?.[0]?.connector,
+          power: charger.power || charger.chargers?.[0]?.power,
+          cost: charger.cost || charger.chargers?.[0]?.cost
+        },
         eta: getETA(charger),
         best,
-        others
+        others,
+        battery,
+        range
       }
     });
+  };
+
+  //////////////////////////////////////////////////
+  // BADGE LOGIC 
+  //////////////////////////////////////////////////
+  const getBadge = (c) => {
+    if (c.is_best) return "🔥 Best Choice";
+    if (c.is_risky) return "⚠ Risky";
+    return "⚡ Reachable";
   };
 
   //////////////////////////////////////////////////
@@ -130,8 +176,31 @@ function Recommendation() {
         </LoadScript>
       </div>
 
-      {/* FLOATING PANEL (MOBILE OPTIMIZED) */}
+      {/* FLOATING PANEL */}
       <div style={styles.panel}>
+
+        <button
+          style={styles.button}
+          onClick={() =>
+            navigate("/booking", {
+              state: {
+                battery: data?.battery,
+                start: best?.start,
+                destination: data?.destination,
+                vehicle_id: data?.vehicle_id,
+                startCoords: data?.startCoords
+              }
+            })
+          }
+        >
+          ← Back
+        </button>
+
+        {/*  SUMMARY */}
+        <div style={{ marginBottom: "10px" }}>
+          <p style={styles.sub}>🔋 Current Battery: <b>{battery}%</b></p>
+          <p style={styles.sub}>📍 Estimated Range Before Threshold: <b>{range} km</b></p>
+        </div>
 
         {best && (
           <div style={styles.bestCard}>
@@ -140,10 +209,17 @@ function Recommendation() {
             <h4>{best.station_name}</h4>
             <p style={styles.address}>{best.address}</p>
 
+            {/* BADGE */}
+            <p style={styles.sub}>{getBadge(best)}</p>
+
+            {/* NEW DATA */}
+            <p style={styles.sub}>🔋 Estimated Battery at Arrival: {best.estimated_battery}%</p>
+            <p style={styles.sub}>📉 Predicted Remaining Range: {best.remaining_range} km</p>
+
             {best.chargers ? (
               best.chargers.map((ch, i) => (
                 <div key={i} style={styles.chargerRow}>
-                  🔌 {ch.connector} | ⚡ {ch.power} kW | 💰 LKR {ch.cost}
+                  🔌 {ch.connector} | ⚡ Connector Power: {ch.power} kW | 💰 LKR {ch.cost}
                 </div>
               ))
             ) : (
@@ -154,7 +230,7 @@ function Recommendation() {
               </>
             )}
 
-            <p style={styles.highlight}>📍 {best.distance} km</p>
+            <p style={styles.highlight}>📍 Distance to reach: {best.distance} km</p>
             <p style={styles.highlight}>⏱ {getETA(best)} mins away</p>
 
             <button style={styles.primaryBtn} onClick={() => goToBooking(best)}>
@@ -171,7 +247,17 @@ function Recommendation() {
             <h4>{c.station_name}</h4>
             <p style={styles.address}>{c.address}</p>
 
-            <p style={styles.sub}>📍 {c.distance} km</p>
+            {/* BADGE */}
+            <p style={styles.sub}>{getBadge(c)}</p>
+
+            {/* NEW DATA */}
+            <p style={styles.sub}>🔌 {c.connector}</p>
+            <p style={styles.sub}>⚡ Connector Power:{c.power} kW</p>
+            <p style={styles.sub}>💰 LKR {c.cost}</p>
+            <p style={styles.sub}>🔋 Estimated Battery at Arrival: {c.estimated_battery}%</p>
+            <p style={styles.sub}>📉 Predicted Remaining Range: {c.remaining_range} km</p>
+
+            <p style={styles.sub}>📍 Distance to reach: {c.distance} km</p>
             <p style={styles.sub}>⏱ {getETA(c)} mins</p>
 
             <button
@@ -200,7 +286,7 @@ function Recommendation() {
 }
 
 //////////////////////////////////////////////////
-// STYLES
+// ORIGINAL STYLES (UNCHANGED)
 //////////////////////////////////////////////////
 
 const styles = {
@@ -209,17 +295,8 @@ const styles = {
     position: "relative",
     fontFamily: "'Segoe UI', sans-serif"
   },
-
-  mapContainer: {
-    height: "100%",
-    width: "100%"
-  },
-
-  map: {
-    height: "100%",
-    width: "100%"
-  },
-
+  mapContainer: { height: "100%", width: "100%" },
+  map: { height: "100%", width: "100%" },
   panel: {
     position: "absolute",
     bottom: "80px",
@@ -233,11 +310,8 @@ const styles = {
     backdropFilter: "blur(16px)",
     padding: "15px",
     borderRadius: "20px",
-    color: "#fff",
-    boxShadow: "0 8px 30px rgba(0,0,0,0.4)",
-    border: "1px solid rgba(255,255,255,0.1)"
+    color: "#fff"
   },
-
   bestCard: {
     background: "linear-gradient(135deg, #00e676, #00c6ff)",
     padding: "15px",
@@ -245,34 +319,16 @@ const styles = {
     marginBottom: "10px",
     color: "#000"
   },
-
   card: {
     background: "rgba(255,255,255,0.08)",
     padding: "12px",
     borderRadius: "14px",
     marginBottom: "10px"
   },
-
-  chargerRow: {
-    fontSize: "13px",
-    marginTop: "4px"
-  },
-
-  address: {
-    fontSize: "12px",
-    opacity: 0.8
-  },
-
-  sub: {
-    fontSize: "13px",
-    opacity: 0.8
-  },
-
-  highlight: {
-    fontWeight: "bold",
-    marginTop: "5px"
-  },
-
+  chargerRow: { fontSize: "13px", marginTop: "4px" },
+  address: { fontSize: "12px", opacity: 0.8 },
+  sub: { fontSize: "13px", opacity: 0.8 },
+  highlight: { fontWeight: "bold", marginTop: "5px" },
   primaryBtn: {
     width: "100%",
     padding: "12px",
@@ -283,7 +339,6 @@ const styles = {
     color: "#fff",
     fontWeight: "bold"
   },
-
   secondaryBtn: {
     width: "100%",
     padding: "10px",
@@ -293,7 +348,6 @@ const styles = {
     background: "transparent",
     color: "#00e676"
   },
-
   nav: {
     position: "fixed",
     bottom: 0,
@@ -302,23 +356,18 @@ const styles = {
     justifyContent: "space-around",
     background: "rgba(0,0,0,0.4)",
     backdropFilter: "blur(15px)",
-    padding: "14px",
-    borderTop: "1px solid rgba(255,255,255,0.1)"
+    padding: "14px"
   },
-
   button: {
     padding: "10px",
     borderRadius: "20px",
     border: "none",
     background: "#00e676",
-    color: "#000",
-    fontWeight: "bold"
+    color: "#000"
   },
-
   empty: {
     height: "100vh",
     display: "flex",
-    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center"
   }

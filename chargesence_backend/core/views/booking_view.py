@@ -437,7 +437,11 @@ def user_bookings(request):
             "start_time": b.start_time,
             "status": b.status,
             "amount": float(b.amount),
-            "final_amount": float(b.final_amount) if b.final_amount else None
+            "final_amount": float(b.final_amount) if b.final_amount else None,
+            
+            "latitude": b.charger.station.latitude,
+            "longitude": b.charger.station.longitude,
+            "map_url": f"https://www.google.com/maps?q={b.charger.station.latitude},{b.charger.station.longitude}"
         })
 
     return Response(data)

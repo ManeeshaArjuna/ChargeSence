@@ -10,16 +10,22 @@ function BookingPage() {
   const charger = state?.charger;
   const eta = state?.eta || 0;
 
+  //////////////////////////////////////////////////
+  //  AUTO CONNECTOR (NEW)
+  //////////////////////////////////////////////////
+  const connector = charger?.connector;
+
   const [slots, setSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [duration, setDuration] = useState(10);
-  const [connector, setConnector] = useState("");
   const [amount, setAmount] = useState(0);
   const [vehicleId, setVehicleId] = useState(null);
 
   const recommendationData = {
     best: state?.best,
-    others: state?.others
+    others: state?.others,
+    battery: state?.battery,
+    range: state?.range 
   };
 
   //////////////////////////////////////////////////
@@ -60,7 +66,6 @@ function BookingPage() {
   const confirmBooking = () => {
 
     if (!selectedSlot) return alert("Select time slot");
-    if (!connector) return alert("Select connector");
     if (!vehicleId) return alert("Add a vehicle first");
 
     const bookingData = {
@@ -97,28 +102,56 @@ function BookingPage() {
 
       <h2 style={styles.title}>⚡ Confirm Booking</h2>
 
+  {/*  SMART COMPACT SUMMARY */}
+  <div style={styles.card}>
+    <h3 style={{ marginBottom: "10px" }}>⚡ Charging Summary</h3>
+
+    <div style={styles.grid}>
+
+      <div>
+        <p style={styles.label}>🔌 Connector</p>
+        <p style={styles.value}>{charger.connector}</p>
+      </div>
+
+      <div>
+        <p style={styles.label}>⚡ Power</p>
+        <p style={styles.value}>{charger.power} kW</p>
+      </div>
+
+      <div>
+        <p style={styles.label}>💰 Cost</p>
+        <p style={styles.value}>LKR {charger.cost}</p>
+      </div>
+
+      <div>
+        <p style={styles.label}>⏱ ETA</p>
+        <p style={styles.value}>{eta} mins</p>
+      </div>
+
+      <div>
+        <p style={styles.label}>🔋 Arrival</p>
+        <p style={styles.value}>{charger.estimated_battery}%</p>
+      </div>
+
+      <div>
+        <p style={styles.label}>📉 Range Left</p>
+        <p style={styles.value}>{charger.remaining_range} km</p>
+      </div>
+
+    </div>
+
+    {/* Highlight row */}
+    <div style={styles.highlightRow}>
+      📍 {charger.distance} km away
+    </div>
+
+  </div>
+
       {/* CHARGER CARD */}
       <div style={styles.card}>
         <h3>{charger.station_name}</h3>
         <p style={styles.sub}>{charger.address}</p>
         <p style={styles.highlight}>ETA: {eta} mins</p>
-      </div>
-
-      {/* CONNECTOR */}
-      <div style={styles.card}>
-        <label>Connector</label>
-        <select
-          value={connector}
-          onChange={(e) => setConnector(e.target.value)}
-          style={styles.input}
-        >
-          <option value="">Select</option>
-          {charger.chargers?.map((c, i) => (
-            <option key={i} value={c.connector}>
-              {c.connector} ({c.power}kW)
-            </option>
-          ))}
-        </select>
       </div>
 
       {/* SLOTS */}
@@ -306,6 +339,32 @@ const styles = {
   active: {
     color: "#00e676",
     fontWeight: "bold"
+  },
+
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "10px"
+  },
+
+  label: {
+    fontSize: "11px",
+    opacity: 0.7
+  },
+
+  value: {
+    fontSize: "15px",
+    fontWeight: "bold"
+  },
+
+  highlightRow: {
+    marginTop: "10px",
+    padding: "8px",
+    borderRadius: "10px",
+    background: "rgba(0,230,118,0.15)",
+    textAlign: "center",
+    fontWeight: "bold",
+    color: "#00e676"
   }
 };
 
