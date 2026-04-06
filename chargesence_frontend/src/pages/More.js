@@ -397,6 +397,11 @@ const styles = {
     textAlign: "left"
   },
 
+  menuBtnHover: {
+    transform: "scale(1.05)",
+    boxShadow: "0 8px 25px rgba(0,230,118,0.6)",
+  },
+
   danger: {
     color: "#ff5252"
   },

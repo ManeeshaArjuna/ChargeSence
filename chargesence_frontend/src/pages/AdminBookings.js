@@ -108,7 +108,7 @@ function AdminBookings() {
             style={styles.select}
           >
             <option value="">All</option>
-            <option value="PENDING">Pending</option>
+            <option value="PAID">Paid</option>
             <option value="COMPLETED">Completed</option>
             <option value="CANCELLED">Cancelled</option>
           </select>
@@ -154,7 +154,7 @@ function AdminBookings() {
                   </td>
 
                   <td>
-                    {b.status === "PENDING" ? (
+                    {b.status === "PAID" ? (
                       <button
                         onClick={()=>cancelBooking(b.id)}
                         style={styles.deleteBtn}

@@ -139,10 +139,12 @@ function ActivityPage() {
       </p>
 
       {b.final_amount && (
-        <p style={styles.amount}>Final: Rs {b.final_amount}</p>
+        <p style={styles.amount}>Charging Fee: Rs {b.final_amount}</p>
       )}
 
       <p style={styles.sub}>Booking Fee: Rs {b.amount}</p>
+
+      <p style={styles.amount}>Total: Rs {b.final_amount ? b.final_amount + b.amount : b.amount}</p>
 
       <div style={styles.actionRow}>
         {actions}

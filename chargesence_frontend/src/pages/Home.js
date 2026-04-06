@@ -419,6 +419,11 @@ const styles = {
     marginTop: "10px"
   },
 
+  buttonHover: {
+    transform: "scale(1.05)",
+    boxShadow: "0 8px 25px rgba(0,230,118,0.6)",
+  },
+
   buttonSecondary: {
     padding: "10px",
     width: "100%",
@@ -427,6 +432,11 @@ const styles = {
     background:"transparent",
     color: "#f3f3f4",
     marginTop: "10px",
+  },
+
+  buttonSecondaryHover: {
+    transform: "scale(1.05)",
+    boxShadow: "0 8px 25px rgba(0,230,118,0.6)",
   },
 
   rewardCard: {
@@ -514,7 +524,7 @@ const styles = {
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    background: "#fff",
+    background: "#105060",
     color: "#000",
     padding: "20px",
     borderRadius: "12px",

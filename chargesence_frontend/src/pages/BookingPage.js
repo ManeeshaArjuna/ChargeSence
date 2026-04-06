@@ -88,7 +88,7 @@ function BookingPage() {
       })
       .catch(err => {
         console.error(err);
-        alert("Booking failed");
+        alert("Booking failed. Insufficient Balance. Please top up your wallet.");
       });
   };
 
